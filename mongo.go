@@ -189,3 +189,34 @@ func CreateResponse(status bool, message string, data interface{}) Jaja {
 	}
 	return response
 }
+
+//-----------------------test buat project, nanti hapus kalo udah
+
+func GetAllBerita(mongoenv *mongo.Database, collname string) []Berita {
+	berita := atdb.GetAllDoc[[]Berita](mongoenv, collname)
+	return berita
+}
+
+func FindBerita(mongoenv *mongo.Database, collname string, databerita Berita) Berita {
+	filter := bson.M{"id": databerita.ID}
+	return atdb.GetOneDoc[Berita](mongoenv, collname, filter)
+}
+
+func idBeritaExists(mongoenv, dbname string, databerita Berita) bool {
+	mconn := SetConnection(mongoenv, dbname).Collection("berita")
+	filter := bson.M{"id": databerita.ID}
+
+	var berita Berita
+	err := mconn.FindOne(context.Background(), filter).Decode(&berita)
+	return err == nil
+}
+
+func InsertBerita(mongoenv *mongo.Database, collname, id, kategori, judul, preview, konten string) (InsertedID interface{}) {
+	req := new(Berita)
+	req.ID = id
+	req.Kategori = kategori
+	req.Judul = judul
+	req.Preview = preview
+	req.Konten = konten
+	return atdb.InsertOneDoc(mongoenv, collname, req)
+}

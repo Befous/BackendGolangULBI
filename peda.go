@@ -222,3 +222,41 @@ func AmbilDataJadwal(mongoenv, dbname, collname string) string {
 	datajadwal := GetAllJadwal(mconn, collname)
 	return ReturnStruct(datajadwal)
 }
+
+//-----------------------test buat project, nanti hapus kalo udah
+
+func TambahBerita(mongoenv, dbname, collname string, r *http.Request) string {
+	var response Credential
+	response.Status = false
+	mconn := SetConnection(mongoenv, dbname)
+	var databerita Berita
+	err := json.NewDecoder(r.Body).Decode(&databerita)
+	if idBeritaExists(mongoenv, dbname, databerita) {
+		response.Status = false
+		response.Message = "ID telah ada"
+	} else {
+		response.Status = true
+		if err != nil {
+			response.Message = "error parsing application/json: " + err.Error()
+		} else {
+			response.Status = true
+			InsertBerita(mconn, collname, databerita.ID, databerita.Kategori, databerita.Judul, databerita.Preview, databerita.Konten)
+			response.Message = "Berhasil Input data"
+		}
+	}
+	return ReturnStruct(response)
+}
+
+func AmbilDataBerita(mongoenv, dbname, collname string) string {
+	mconn := SetConnection(mongoenv, dbname)
+	databerita := GetAllBerita(mconn, collname)
+	return ReturnStruct(databerita)
+}
+
+func AmbilSatuBerita(mongoenv, dbname, collname string, r *http.Request) string {
+	mconn := SetConnection(mongoenv, dbname)
+	var databerita Berita
+	berita := FindBerita(mconn, collname, databerita)
+
+	return ReturnStruct(berita)
+}

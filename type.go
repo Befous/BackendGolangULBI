@@ -111,3 +111,13 @@ type Jadwal struct {
 	Hari string `json:"hari" bson:"hari"`
 	Jam  string `json:"jam" bson:"jam"`
 }
+
+//-----------------------test buat project, nanti hapus kalo udah
+
+type Berita struct {
+	ID       string `json:"id" bson:"id"`
+	Kategori string `json:"kategori" bson:"kategori"`
+	Judul    string `json:"judul" bson:"judul"`
+	Preview  string `json:"preview" bson:"preview"`
+	Konten   string `json:"konten" bson:"konten"`
+}
