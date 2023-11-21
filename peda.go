@@ -300,10 +300,10 @@ func Authorization(publickey, mongoenv, dbname, collname string, r *http.Request
 
 	userdata.Username = checktoken //userdata.Username dibuat menjadi checktoken agar userdata.Username dapat digunakan sebagai filter untuk menggunakan function FindUser
 
-	koko := json.NewDecoder(r.Body).Decode(&userdata)
-	if koko != nil {
-		req.Message = "error parsing application/json: " + err.Error()
+	if checktoken == "" {
+		req.Message = "hasil decode tidak ada"
 	} else {
+		req.Message = "hasil decode token"
 		datauser := FindUser(mconn, collname, userdata)
 		req.Status = true
 		req.Data.Username = datauser.Username
