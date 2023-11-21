@@ -282,3 +282,33 @@ func CobaCobaAja(publickey string, r *http.Request) string {
 
 	return ReturnStruct(req)
 }
+
+func Authorization(publickey, mongoenv, dbname, collname string, r *http.Request) string {
+	var req AuthorizationStruct
+	req.Status = false
+
+	mconn := SetConnection(mongoenv, dbname)
+
+	var userdata User
+
+	// Read cookie
+	cookie, err := r.Cookie("token")
+	if err != nil {
+		req.Message = "error parsing cookie: " + err.Error()
+	} else {
+		checktoken := watoken.DecodeGetId(os.Getenv(publickey), cookie.Value)
+
+		userdata.Username = checktoken //userdata.Username dibuat menjadi checktoken agar userdata.Username dapat digunakan sebagai filter untuk menggunakan function FindUser
+
+		koko := json.NewDecoder(r.Body).Decode(&userdata)
+		if koko != nil {
+			req.Message = "error parsing application/json: " + err.Error()
+		} else {
+			datauser := FindUser(mconn, collname, userdata)
+			req.Data.Username = datauser.Username
+			req.Data.Name = datauser.Name
+			req.Data.Email = datauser.Email
+		}
+	}
+	return ReturnStruct(req)
+}

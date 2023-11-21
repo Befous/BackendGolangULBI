@@ -152,12 +152,10 @@ func TestGeneratePasswordHash(t *testing.T) {
 	fmt.Println("Match:   ", match)
 }
 func TestGeneratePrivateKeyPaseto(t *testing.T) {
-	// privateKey, publicKey := watoken.GenerateKey()
-	privateKey := "535ff96a3ffc289eccda837a9e323e66e00855a1918fcb9a20889f77d85bf04d9bac8917faf1a9457de01191ce77048661073449cbd6e79e4885128379db0623"
-	publicKey := "9bac8917faf1a9457de01191ce77048661073449cbd6e79e4885128379db0623"
+	privateKey, publicKey := watoken.GenerateKey()
 	fmt.Println(privateKey)
 	fmt.Println(publicKey)
-	hasil, err := watoken.Encode("ibrohim", privateKey)
+	hasil, err := watoken.Encode("philandernews", privateKey)
 	fmt.Println(hasil, err)
 }
 
@@ -188,7 +186,7 @@ func TestIsPasswordValid(t *testing.T) {
 }
 
 func TestWatoken(t *testing.T) {
-	privateKey := "535ff96a3ffc289eccda837a9e323e66e00855a1918fcb9a20889f77d85bf04d9bac8917faf1a9457de01191ce77048661073449cbd6e79e4885128379db0623"
+	privateKey := "8c92e028bf9dc2ad8d7244a08b611220845a7f43fb7986a6af805cbda811b96c02a51c4853c18c4a4bbedd29661618e7bec9041d4063caec8cc84c601c20281b"
 	userid := "ibrohim"
 
 	tokenstring, err := watoken.EncodeforMinutes(userid, privateKey, 1)
@@ -197,9 +195,9 @@ func TestWatoken(t *testing.T) {
 }
 
 func TestDecode1Menit(t *testing.T) {
-	publicKey := "9bac8917faf1a9457de01191ce77048661073449cbd6e79e4885128379db0623"
+	publicKey := "02a51c4853c18c4a4bbedd29661618e7bec9041d4063caec8cc84c601c20281b"
 
-	tokenstring := "v4.public.eyJleHAiOiIyMDIzLTExLTIyVDAxOjU4OjA1KzA3OjAwIiwiaWF0IjoiMjAyMy0xMS0yMlQwMTo1NzowNSswNzowMCIsImlkIjoiaWJyb2hpbSIsIm5iZiI6IjIwMjMtMTEtMjJUMDE6NTc6MDUrMDc6MDAifQHf-cyyCpWvUMD4OJhdaWIKrKgtgja0eBbzOol0JXLMu5AqlwvEKPDS7bhmBLF0isDd954cAR3fjRu6dnIiCA4"
+	tokenstring := "v4.public.eyJleHAiOiIyMDIzLTExLTIyVDA3OjAzOjAyKzA3OjAwIiwiaWF0IjoiMjAyMy0xMS0yMlQwNTowMzowMiswNzowMCIsImlkIjoicGhpbGFuZGVybmV3cyIsIm5iZiI6IjIwMjMtMTEtMjJUMDU6MDM6MDIrMDc6MDAiffs6sSL381zDo9gDLMzEPPZumjaD9--KGhm01vwBCCSMeILq2QvpMLfpR5rgTwqJDt9ubZBqnqtLaBQyU0Y_xQY"
 	body := watoken.DecodeGetId(publicKey, tokenstring)
 	fmt.Println("isi : ", body)
 }

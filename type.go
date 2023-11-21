@@ -48,6 +48,8 @@ type Properties struct {
 }
 
 type User struct {
+	Name     string `json:"name,omitempty" bson:"name,omitempty"`
+	Email    string `json:"email,omitempty" bson:"email,omitempty"`
 	Username string `json:"username" bson:"username"`
 	Password string `json:"password" bson:"password"`
 	Role     string `json:"role,omitempty" bson:"role,omitempty"`
@@ -120,4 +122,10 @@ type Berita struct {
 	Judul    string `json:"judul" bson:"judul"`
 	Preview  string `json:"preview" bson:"preview"`
 	Konten   string `json:"konten" bson:"konten"`
+}
+
+type AuthorizationStruct struct {
+	Status  bool   `json:"status" bson:"status"`
+	Data    User   `json:"data,omitempty" bson:"data,omitempty"`
+	Message string `json:"message,omitempty" bson:"message,omitempty"`
 }
