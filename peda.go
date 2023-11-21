@@ -263,10 +263,9 @@ func AmbilSatuBerita(mongoenv, dbname, collname string, r *http.Request) string 
 
 // -------------coba decode
 
-func CobaCobaAja(publickey, mongoenv, dbname, collname string, r *http.Request) string {
-	mconn := SetConnection(mongoenv, dbname)
+func CobaCobaAja(publickey string, r *http.Request) string {
 	req := new(ResponseDataUser)
-	var datauser User
+	req.Status = false
 
 	// Read cookie
 	cookie, err := r.Cookie("token")
@@ -275,15 +274,11 @@ func CobaCobaAja(publickey, mongoenv, dbname, collname string, r *http.Request) 
 	}
 
 	checktoken := watoken.DecodeGetId(os.Getenv(publickey), cookie.Value)
-
-	asdasd := FindUser(mconn, collname, datauser)
-
-	if checktoken == asdasd.Username {
-		req.Status = true
-		req.Message = "Selamat data" + asdasd.Username
+	if checktoken == "" {
+		req.Message = "hasil decode tidak ada"
 	} else {
-		req.Status = false
-		req.Message = "Data Username tidak ada di database"
+		req.Message = checktoken
 	}
+
 	return ReturnStruct(req)
 }
