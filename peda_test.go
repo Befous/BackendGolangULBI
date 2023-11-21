@@ -28,7 +28,6 @@ func TestCreateNewUserRole(t *testing.T) {
 	var userdata User
 	userdata.Username = "befous"
 	userdata.Password = "befous"
-	userdata.Role = "admin"
 	mconn := SetConnection("MONGOCONNSTRINGENV", "befous")
 	CreateNewUserRole(mconn, "user", userdata)
 }
@@ -38,7 +37,6 @@ func TestCreateNewUserToken(t *testing.T) {
 	var userdata User
 	userdata.Username = "befous"
 	userdata.Password = "befous"
-	userdata.Role = "admin"
 
 	// Generate private and public keys using watoken.GenerateKey
 	privateKey, publicKey := watoken.GenerateKey()
@@ -96,7 +94,6 @@ func TestGFCPostHandlerUser(t *testing.T) {
 	var userdata User
 	userdata.Username = "befous"
 	userdata.Password = "befous"
-	userdata.Role = "admin"
 	CreateNewUserRole(mconn, "user", userdata)
 }
 
@@ -105,7 +102,6 @@ func TestFunciionUser(t *testing.T) {
 	var userdata User
 	userdata.Username = "befous"
 	userdata.Password = "befous"
-	userdata.Role = "admin"
 	CreateNewUserRole(mconn, "user", userdata)
 }
 
@@ -189,7 +185,7 @@ func TestWatoken(t *testing.T) {
 	privateKey := "8c92e028bf9dc2ad8d7244a08b611220845a7f43fb7986a6af805cbda811b96c02a51c4853c18c4a4bbedd29661618e7bec9041d4063caec8cc84c601c20281b"
 	userid := "ibrohim"
 
-	tokenstring, err := watoken.EncodeforMinutes(userid, privateKey, 1)
+	tokenstring, err := watoken.Encode(userid, privateKey)
 	fmt.Println("error : ", err)
 	fmt.Println("token : ", tokenstring)
 }
