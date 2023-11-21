@@ -266,6 +266,7 @@ func AmbilSatuBerita(mongoenv, dbname, collname string, r *http.Request) string 
 func CobaCobaAja(publickey, mongoenv, dbname, collname string, r *http.Request) string {
 	mconn := SetConnection(mongoenv, dbname)
 	req := new(ResponseDataUser)
+	var datauser User
 
 	// Read cookie
 	cookie, err := r.Cookie("token")
@@ -274,38 +275,15 @@ func CobaCobaAja(publickey, mongoenv, dbname, collname string, r *http.Request) 
 	}
 
 	checktoken := watoken.DecodeGetId(os.Getenv(publickey), cookie.Value)
-	compared := CompareUsername(mconn, collname, checktoken)
-	if compared != true {
+
+	asdasd := FindUser(mconn, collname, datauser)
+
+	if checktoken == asdasd.Username {
+		req.Status = true
+		req.Message = "Selamat data" + asdasd.Username
+	} else {
 		req.Status = false
 		req.Message = "Data Username tidak ada di database"
-	} else {
-		req.Status = true
-		req.Message = "Berhasil"
 	}
 	return ReturnStruct(req)
-}
-
-func CobaLogin(privatekey, mongoenv, dbname, collname string, r *http.Request) string {
-	var response Credential
-	response.Status = false
-	mconn := SetConnection(mongoenv, dbname)
-	var datauser User
-	err := json.NewDecoder(r.Body).Decode(&datauser)
-	if err != nil {
-		response.Message = "error parsing application/json: " + err.Error()
-	} else {
-		if IsPasswordValid(mconn, collname, datauser) {
-			response.Status = true
-			tokenstring, err := watoken.Encode(datauser.Username, os.Getenv(privatekey))
-			if err != nil {
-				response.Message = "Gagal Encode Token : " + err.Error()
-			} else {
-				response.Message = "Selamat Datang"
-				response.Token = tokenstring
-			}
-		} else {
-			response.Message = "Password Salah"
-		}
-	}
-	return ReturnStruct(response)
 }
