@@ -133,8 +133,10 @@ func IsPasswordValid(mongoenv *mongo.Database, collname string, userdata User) b
 	return hashChecker
 }
 
-func InsertUserdata(mongoenv *mongo.Database, collname, username, password string, admin, author bool) (InsertedID interface{}) {
+func InsertUserdata(mongoenv *mongo.Database, collname, name, email, username, password string, admin, author bool) (InsertedID interface{}) {
 	req := new(User)
+	req.Name = name
+	req.Email = email
 	req.Username = username
 	req.Password = password
 	req.Role.Admin = admin

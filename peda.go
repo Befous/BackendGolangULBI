@@ -85,7 +85,7 @@ func RegistrasiUser(mongoenv, dbname, collname string, r *http.Request) string {
 			if hashErr != nil {
 				response.Message = "Gagal Hash Password" + err.Error()
 			}
-			InsertUserdata(mconn, collname, datauser.Username, hash, datauser.Role.Admin, datauser.Role.Author)
+			InsertUserdata(mconn, collname, datauser.Name, datauser.Email, datauser.Username, hash, datauser.Role.Admin, datauser.Role.Author)
 			response.Message = "Berhasil Input data"
 		}
 	}
