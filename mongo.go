@@ -133,11 +133,13 @@ func IsPasswordValid(mongoenv *mongo.Database, collname string, userdata User) b
 	return hashChecker
 }
 
-func InsertUserdata(mongoenv *mongo.Database, collname, username, password string, roleapaaja SemuaRole) (InsertedID interface{}) {
+func InsertUserdata(mongoenv *mongo.Database, collname, username, password string, admin, author bool) (InsertedID interface{}) {
 	req := new(User)
 	req.Username = username
 	req.Password = password
-	req.Role = roleapaaja
+	req.Role.Admin = admin
+	req.Role.Author = author
+	req.Role.User = true
 	return atdb.InsertOneDoc(mongoenv, collname, req)
 }
 

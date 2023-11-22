@@ -68,7 +68,6 @@ func AmbilDataGeojson(mongoenv, dbname, collname string) string {
 
 func RegistrasiUser(mongoenv, dbname, collname string, r *http.Request) string {
 	var response Credential
-	var datarole SemuaRole
 	response.Status = false
 	mconn := SetConnection(mongoenv, dbname)
 	var datauser User
@@ -86,7 +85,7 @@ func RegistrasiUser(mongoenv, dbname, collname string, r *http.Request) string {
 			if hashErr != nil {
 				response.Message = "Gagal Hash Password" + err.Error()
 			}
-			InsertUserdata(mconn, collname, datauser.Username, hash, datarole)
+			InsertUserdata(mconn, collname, datauser.Username, hash, datauser.Role.Admin, datauser.Role.Author)
 			response.Message = "Berhasil Input data"
 		}
 	}
