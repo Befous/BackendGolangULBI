@@ -314,3 +314,31 @@ func Authorization(publickey, mongoenv, dbname, collname string, r *http.Request
 
 	return ReturnStruct(req)
 }
+
+func AuthorizationHeaders(publickey, mongoenv, dbname, collname string, r *http.Request) string {
+	var req AuthorizationStruct
+	req.Status = false
+
+	mconn := SetConnection(mongoenv, dbname)
+
+	var userdata User
+	goblok := r.Header.Get("token")
+
+	checktoken := watoken.DecodeGetId(os.Getenv(publickey), goblok)
+
+	userdata.Username = checktoken //userdata.Username dibuat menjadi checktoken agar userdata.Username dapat digunakan sebagai filter untuk menggunakan function FindUser
+
+	if checktoken == "" {
+		req.Message = "hasil decode tidak ada"
+	} else {
+		req.Message = "hasil decode token"
+		datauser := FindUser(mconn, collname, userdata)
+		req.Status = true
+		req.Data.Username = datauser.Username
+		req.Data.Name = datauser.Name
+		req.Data.Email = datauser.Email
+		req.Data.Role = datauser.Role
+	}
+
+	return ReturnStruct(req)
+}
