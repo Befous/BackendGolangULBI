@@ -111,7 +111,8 @@ func DeleteUser(mongoenv *mongo.Database, collname string, userdata User) interf
 	filter := bson.M{"username": userdata.Username}
 	return atdb.DeleteOneDoc(mongoenv, collname, filter)
 }
-func ReplaceOneDoc(mongoenv *mongo.Database, collname string, filter bson.M, userdata User) interface{} {
+func UpdateUser(mongoenv *mongo.Database, collname string, userdata User) interface{} {
+	filter := bson.M{"username": userdata.Username}
 	return atdb.ReplaceOneDoc(mongoenv, collname, filter, userdata)
 }
 func FindUser(mongoenv *mongo.Database, collname string, userdata User) User {
