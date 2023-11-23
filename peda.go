@@ -342,3 +342,40 @@ func AuthorizationHeaders(publickey, mongoenv, dbname, collname string, r *http.
 
 	return ReturnStruct(req)
 }
+
+func HapusUserproyek(publickey, mongoenv, dbname, collname string, r *http.Request) string {
+	var response Credential
+	response.Status = false
+	mconn := SetConnection(mongoenv, dbname)
+	var auth User
+	var datauser User
+
+	goblok := r.Header.Get("token")
+
+	if goblok == "" {
+		response.Message = "Header Login Not Found"
+	} else {
+		checktoken := watoken.DecodeGetId(os.Getenv(publickey), goblok)
+
+		auth.Username = checktoken //userdata.Username dibuat menjadi checktoken agar userdata.Username dapat digunakan sebagai filter untuk menggunakan function FindUser
+
+		if checktoken == "" {
+			response.Message = "hasil decode tidak ditemukan"
+		} else {
+			auth2 := FindUser(mconn, collname, auth)
+			if auth2.Role.Admin != true {
+				response.Message = "anda bukan admin jadi tidak diizinkan"
+			} else {
+				err := json.NewDecoder(r.Body).Decode(&datauser)
+				if err != nil {
+					response.Message = "error parsing application/json: " + err.Error()
+				} else {
+					DeleteUser(mconn, collname, datauser)
+					response.Status = true
+					response.Message = "Berhasil Delete data"
+				}
+			}
+		}
+	}
+	return ReturnStruct(response)
+}
