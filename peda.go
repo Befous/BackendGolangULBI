@@ -425,7 +425,7 @@ func UpdateUserproyek(publickey, mongoenv, dbname, collname string, r *http.Requ
 	return ReturnStruct(response)
 }
 
-func AmbilSatuBeritaPage(publickey, mongoenv, dbname, collname string, r *http.Request) string {
+func AmbilSatuBeritaPage(publickey, mongoenv, dbname, colluser, collberita string, r *http.Request) string {
 	var response Pesan
 	response.Status = false
 	mconn := SetConnection(mongoenv, dbname)
@@ -445,13 +445,48 @@ func AmbilSatuBeritaPage(publickey, mongoenv, dbname, collname string, r *http.R
 		if checktoken == "" {
 			response.Message = "hasil decode tidak ditemukan"
 		} else {
-			auth2 := FindUser(mconn, collname, auth)
+			auth2 := FindUser(mconn, colluser, auth)
+			if auth2.Role.User != true {
+				response.Message = "akun anda tidak aktif"
+			} else {
+				idberita := r.URL.Query().Get("page")
+				databerita.ID = idberita
+				berita := FindBerita(mconn, collberita, databerita)
+
+				return ReturnStruct(berita)
+			}
+		}
+	}
+	return ReturnStruct(response)
+}
+
+func AmbilSatuBeritaJson(publickey, mongoenv, dbname, colluser, collberita string, r *http.Request) string {
+	var response Pesan
+	response.Status = false
+	mconn := SetConnection(mongoenv, dbname)
+
+	var databerita Berita
+
+	var auth User
+	goblok := r.Header.Get("token")
+
+	if goblok == "" {
+		response.Message = "header login tidak ditemukan"
+	} else {
+		checktoken := watoken.DecodeGetId(os.Getenv(publickey), goblok)
+
+		auth.Username = checktoken //userdata.Username dibuat menjadi checktoken agar userdata.Username dapat digunakan sebagai filter untuk menggunakan function FindUser
+
+		if checktoken == "" {
+			response.Message = "hasil decode tidak ditemukan"
+		} else {
+			auth2 := FindUser(mconn, colluser, auth)
 			if auth2.Role.User != true {
 				response.Message = "akun anda tidak aktif"
 			} else {
 				// idberita := r.URL.Query().Get("page")
 				// databerita.ID = idberita
-				berita := FindBerita(mconn, collname, databerita)
+				berita := FindBerita(mconn, collberita, databerita)
 
 				return ReturnStruct(berita)
 			}
