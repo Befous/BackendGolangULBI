@@ -74,6 +74,27 @@ func GeoIntersects(mongoconn *mongo.Database, long float64, lat float64) (namalo
 
 }
 
+func GeoWithin(mongoconn *mongo.Database, coordinates [][][]float64) (namalokasi string) {
+	lokasicollection := mongoconn.Collection("geojson")
+	filter := bson.M{
+		"geometry": bson.M{
+			"$geoWithin": bson.M{
+				"$geometry": bson.M{
+					"type":        "Polygon",
+					"coordinates": coordinates,
+				},
+			},
+		},
+	}
+	var lokasi Lokasi
+	err := lokasicollection.FindOne(context.TODO(), filter).Decode(&lokasi)
+	if err != nil {
+		log.Printf("GeoWithin: %v\n", err)
+	}
+	return lokasi.Properties.Name
+
+}
+
 // --------------------------------------------------------------------- Projek 3 ---------------------------------------------------------------------
 
 // ---------------------------------------------------------------------- User

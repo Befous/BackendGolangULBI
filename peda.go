@@ -189,6 +189,22 @@ func PostGeoIntersects(mongoenv, dbname string, r *http.Request) string {
 	return ReturnStruct(response)
 }
 
+func PostGeoWithin(mongoenv, dbname string, r *http.Request) string {
+	var coordinate GeometryPolygon
+	var response Pesan
+	response.Status = false
+	mconn := SetConnection(mongoenv, dbname)
+
+	err := json.NewDecoder(r.Body).Decode(&coordinate)
+	if err != nil {
+		response.Message = "error parsing application/json: " + err.Error()
+	} else {
+		response.Status = true
+		response.Message = GeoWithin(mconn, coordinate.Coordinates)
+	}
+	return ReturnStruct(response)
+}
+
 // --------------------------------------------------------------------- Projek 3 ---------------------------------------------------------------------
 
 func Authorization(publickey, mongoenv, dbname, collname string, r *http.Request) string {

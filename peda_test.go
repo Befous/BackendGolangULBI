@@ -30,8 +30,23 @@ func TestDecode(t *testing.T) {
 	fmt.Println("isi : ", body)
 }
 
-func TestUpdateGetData(t *testing.T) {
+func TestGeoIntersects(t *testing.T) {
 	mconn := SetConnectionTest("mongodb+srv://befous:yUft6BXdcZJ647e8@cluster0.sstnspm.mongodb.net/", "befous")
 	datagedung := GeoIntersects(mconn, 103.60768133536988, -1.628526295003084)
+	fmt.Println(datagedung)
+}
+
+func TestGeoWithin(t *testing.T) {
+	mconn := SetConnectionTest("mongodb+srv://befous:yUft6BXdcZJ647e8@cluster0.sstnspm.mongodb.net/", "befous")
+	coordinates := [][][]float64{
+		{
+			{103.62892373959272, -1.616812371154296},
+			{103.62890068598779, -1.616866839799556},
+			{103.62896041578165, -1.616890931699615},
+			{103.62898556516905, -1.6168364630550514},
+			{103.62892373959272, -1.616812371154296},
+		},
+	}
+	datagedung := GeoWithin(mconn, coordinates)
 	fmt.Println(datagedung)
 }
