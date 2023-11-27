@@ -50,3 +50,9 @@ func TestGeoWithin(t *testing.T) {
 	datagedung := GeoWithin(mconn, coordinates)
 	fmt.Println(datagedung)
 }
+
+func TestNear(t *testing.T) {
+	mconn := SetConnectionTest("mongodb+srv://befous:yUft6BXdcZJ647e8@cluster0.sstnspm.mongodb.net/", "befous")
+	datagedung := Near(mconn, 103.6037314895799, -1.632582001101999)
+	fmt.Println(datagedung)
+}
