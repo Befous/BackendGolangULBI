@@ -175,7 +175,7 @@ func AmbilDataGeojson(publickey, mongoenv, dbname, colluser, collgeojson string,
 
 func PostGeoIntersects(mongoenv, dbname string, r *http.Request) string {
 	var longlat LongLat
-	var response CredentialGeojson
+	var response Pesan
 	response.Status = false
 	mconn := SetConnection(mongoenv, dbname)
 
@@ -183,6 +183,7 @@ func PostGeoIntersects(mongoenv, dbname string, r *http.Request) string {
 	if err != nil {
 		response.Message = "error parsing application/json: " + err.Error()
 	} else {
+		response.Status = true
 		response.Message = GeoIntersects(mconn, longlat.Longitude, longlat.Latitude)
 	}
 	return ReturnStruct(response)
