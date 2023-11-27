@@ -13,87 +13,244 @@ func ReturnStruct(DataStuct any) string {
 	return string(jsondata)
 }
 
-func MembuatGeojsonPoint(mongoenv, dbname, collname string, r *http.Request) string {
+func MembuatGeojsonPoint(publickey, mongoenv, dbname, colluser, collgeojson string, r *http.Request) string {
+	var response CredentialGeojson
+	response.Status = false
 	mconn := SetConnection(mongoenv, dbname)
 	var geojsonpoint GeoJsonPoint
+
+	var auth User
+	goblok := r.Header.Get("token")
+
+	if goblok == "" {
+		response.Message = "header login tidak ditemukan"
+	} else {
+		checktoken := watoken.DecodeGetId(os.Getenv(publickey), goblok)
+
+		auth.Username = checktoken //userdata.Username dibuat menjadi checktoken agar userdata.Username dapat digunakan sebagai filter untuk menggunakan function FindUser
+
+		if checktoken == "" {
+			response.Message = "hasil decode tidak ditemukan"
+		} else {
+			if usernameExists(mongoenv, dbname, auth) {
+				auth2 := FindUser(mconn, colluser, auth)
+				if auth2.Role.User == true {
+					err := json.NewDecoder(r.Body).Decode(&geojsonpoint)
+					if err != nil {
+						response.Message = "error parsing application/json: " + err.Error()
+					} else {
+						PostPoint(mconn, collgeojson, geojsonpoint)
+						response.Message = "data point berhasil masuk"
+					}
+				} else {
+					response.Message = "akun anda tidak aktif"
+				}
+			} else {
+				response.Message = "akun tidak ditemukan"
+			}
+		}
+	}
+
 	err := json.NewDecoder(r.Body).Decode(&geojsonpoint)
 	if err != nil {
 		return err.Error()
 	}
-	PostPoint(mconn, collname, geojsonpoint)
-	return ReturnStruct(geojsonpoint)
-}
 
-func MembuatGeojsonPolyline(mongoenv, dbname, collname string, r *http.Request) string {
-	var response Pesan
-	if r.Header.Get("token") == os.Getenv("TOKEN") {
-		mconn := SetConnection(mongoenv, dbname)
-		var geojsonline GeoJsonLineString
-		err := json.NewDecoder(r.Body).Decode(&geojsonline)
-		if err != nil {
-			response.Message = "error parsing application/json: " + err.Error()
-		} else {
-			PostLinestring(mconn, collname, geojsonline)
-			response.Message = "Data polyline berhasil masuk"
-		}
-	} else {
-		response.Message = "Token Salah"
-	}
 	return ReturnStruct(response)
 }
 
-func MembuatGeojsonPolygon(mongoenv, dbname, collname string, r *http.Request) string {
-	var response Pesan
-	if r.Header.Get("token") == os.Getenv("TOKEN") {
-		mconn := SetConnection(mongoenv, dbname)
-		var geojsonpolygon GeoJsonPolygon
-		err := json.NewDecoder(r.Body).Decode(&geojsonpolygon)
-		if err != nil {
-			response.Message = "error parsing application/json: " + err.Error()
-		} else {
-			PostPolygon(mconn, collname, geojsonpolygon)
-			response.Message = "Data polygon berhasil masuk"
-		}
-	} else {
-		response.Message = "Token Salah"
-	}
-	return ReturnStruct(response)
-}
-
-func AmbilDataGeojson(mongoenv, dbname, collname string) string {
+func MembuatGeojsonPolyline(publickey, mongoenv, dbname, colluser, collgeojson string, r *http.Request) string {
+	var response CredentialGeojson
+	response.Status = false
 	mconn := SetConnection(mongoenv, dbname)
-	datagedung := GetAllBangunanLineString(mconn, collname)
-	return ReturnStruct(datagedung)
+	var geojsonline GeoJsonLineString
+
+	var auth User
+	goblok := r.Header.Get("token")
+
+	if goblok == "" {
+		response.Message = "header login tidak ditemukan"
+	} else {
+		checktoken := watoken.DecodeGetId(os.Getenv(publickey), goblok)
+
+		auth.Username = checktoken //userdata.Username dibuat menjadi checktoken agar userdata.Username dapat digunakan sebagai filter untuk menggunakan function FindUser
+
+		if checktoken == "" {
+			response.Message = "hasil decode tidak ditemukan"
+		} else {
+			if usernameExists(mongoenv, dbname, auth) {
+				auth2 := FindUser(mconn, colluser, auth)
+				if auth2.Role.User == true {
+					err := json.NewDecoder(r.Body).Decode(&geojsonline)
+					if err != nil {
+						response.Message = "error parsing application/json: " + err.Error()
+					} else {
+						PostLinestring(mconn, collgeojson, geojsonline)
+						response.Message = "data polyline berhasil masuk"
+					}
+				} else {
+					response.Message = "akun anda tidak aktif"
+				}
+			} else {
+				response.Message = "akun tidak ditemukan"
+			}
+		}
+	}
+	return ReturnStruct(response)
 }
 
-func RegistrasiUser(mongoenv, dbname, collname string, r *http.Request) string {
-	var response Credential
+func MembuatGeojsonPolygon(publickey, mongoenv, dbname, colluser, collgeojson string, r *http.Request) string {
+	var response CredentialGeojson
+	response.Status = false
+	mconn := SetConnection(mongoenv, dbname)
+	var geojsonpolygon GeoJsonPolygon
+
+	var auth User
+	goblok := r.Header.Get("token")
+
+	if goblok == "" {
+		response.Message = "header login tidak ditemukan"
+	} else {
+		checktoken := watoken.DecodeGetId(os.Getenv(publickey), goblok)
+
+		auth.Username = checktoken //userdata.Username dibuat menjadi checktoken agar userdata.Username dapat digunakan sebagai filter untuk menggunakan function FindUser
+
+		if checktoken == "" {
+			response.Message = "hasil decode tidak ditemukan"
+		} else {
+			if usernameExists(mongoenv, dbname, auth) {
+				auth2 := FindUser(mconn, colluser, auth)
+				if auth2.Role.User == true {
+					err := json.NewDecoder(r.Body).Decode(&geojsonpolygon)
+					if err != nil {
+						response.Message = "error parsing application/json: " + err.Error()
+					} else {
+						PostPolygon(mconn, collgeojson, geojsonpolygon)
+						response.Message = "data polygon berhasil masuk"
+					}
+				} else {
+					response.Message = "akun anda tidak aktif"
+				}
+			} else {
+				response.Message = "akun tidak ditemukan"
+			}
+		}
+	}
+	return ReturnStruct(response)
+}
+
+func AmbilDataGeojson(publickey, mongoenv, dbname, colluser, collgeojson string, r *http.Request) string {
+	var response CredentialGeojson
+	response.Status = false
+	mconn := SetConnection(mongoenv, dbname)
+
+	var auth User
+	goblok := r.Header.Get("token")
+
+	if goblok == "" {
+		response.Message = "header login tidak ditemukan"
+	} else {
+		checktoken := watoken.DecodeGetId(os.Getenv(publickey), goblok)
+
+		auth.Username = checktoken //userdata.Username dibuat menjadi checktoken agar userdata.Username dapat digunakan sebagai filter untuk menggunakan function FindUser
+
+		if checktoken == "" {
+			response.Message = "hasil decode tidak ditemukan"
+		} else {
+			if usernameExists(mongoenv, dbname, auth) {
+				auth2 := FindUser(mconn, colluser, auth)
+				if auth2.Role.User == true {
+					datagedung := GetAllBangunanLineString(mconn, collgeojson)
+					return ReturnStruct(datagedung)
+				} else {
+					response.Message = "akun anda tidak aktif"
+				}
+			} else {
+				response.Message = "akun tidak ditemukan"
+			}
+		}
+	}
+	return ReturnStruct(response)
+}
+
+func PostGeoIntersects(mongoenv, dbname string, r *http.Request) string {
+	var longlat LongLat
+	var response CredentialGeojson
+	response.Status = false
+	mconn := SetConnection(mongoenv, dbname)
+
+	err := json.NewDecoder(r.Body).Decode(&longlat)
+	if err != nil {
+		response.Message = "error parsing application/json: " + err.Error()
+	} else {
+		response.Message = GeoIntersects(mconn, longlat.Longitude, longlat.Latitude)
+	}
+	return ReturnStruct(response)
+}
+
+// --------------------------------------------------------------------- Projek 3 ---------------------------------------------------------------------
+
+func Authorization(publickey, mongoenv, dbname, collname string, r *http.Request) string {
+	var response CredentialUser
+	response.Status = false
+
+	mconn := SetConnection(mongoenv, dbname)
+
+	var userdata User
+	goblok := r.Header.Get("token")
+
+	if goblok == "" {
+		response.Message = "header login tidak ditemukan"
+	} else {
+		checktoken := watoken.DecodeGetId(os.Getenv(publickey), goblok)
+
+		userdata.Username = checktoken //userdata.Username dibuat menjadi checktoken agar userdata.Username dapat digunakan sebagai filter untuk menggunakan function FindUser
+
+		if checktoken == "" {
+			response.Message = "hasil decode tidak ditemukan"
+		} else {
+			if usernameExists(mongoenv, dbname, userdata) {
+				response.Message = "berhasil decode token"
+				datauser := FindUser(mconn, collname, userdata)
+				response.Status = true
+				response.Data.Username = datauser.Username
+				response.Data.Name = datauser.Name
+				response.Data.Email = datauser.Email
+				response.Data.Role = datauser.Role
+			} else {
+				response.Message = "akun tidak ditemukan"
+			}
+		}
+	}
+	return ReturnStruct(response)
+}
+
+func Registrasi(mongoenv, dbname, collname string, r *http.Request) string {
+	var response CredentialUser
 	response.Status = false
 	mconn := SetConnection(mongoenv, dbname)
 	var datauser User
 	err := json.NewDecoder(r.Body).Decode(&datauser)
 	if usernameExists(mongoenv, dbname, datauser) {
-		response.Status = false
 		response.Message = "Username telah dipakai"
 	} else {
-		response.Status = true
 		if err != nil {
 			response.Message = "error parsing application/json: " + err.Error()
 		} else {
-			response.Status = true
 			hash, hashErr := HashPassword(datauser.Password)
 			if hashErr != nil {
 				response.Message = "Gagal Hash Password" + err.Error()
 			}
 			InsertUserdata(mconn, collname, datauser.Name, datauser.Email, datauser.Username, hash, datauser.Role.Admin, datauser.Role.Author)
+			response.Status = true
 			response.Message = "Berhasil Input data"
 		}
 	}
 	return ReturnStruct(response)
 }
 
-func LoginUser(privatekey, mongoenv, dbname, collname string, r *http.Request) string {
-	var response Credential
+func Login(privatekey, mongoenv, dbname, collname string, r *http.Request) string {
+	var response CredentialUser
 	response.Status = false
 	mconn := SetConnection(mongoenv, dbname)
 	var datauser User
@@ -101,115 +258,362 @@ func LoginUser(privatekey, mongoenv, dbname, collname string, r *http.Request) s
 	if err != nil {
 		response.Message = "error parsing application/json: " + err.Error()
 	} else {
-		if IsPasswordValid(mconn, collname, datauser) {
-			response.Status = true
-			tokenstring, err := watoken.Encode(datauser.Username, os.Getenv(privatekey))
-			if err != nil {
-				response.Message = "Gagal Encode Token : " + err.Error()
+		if usernameExists(mongoenv, dbname, datauser) {
+			if IsPasswordValid(mconn, collname, datauser) {
+				user := FindUser(mconn, collname, datauser)
+				tokenstring, err := watoken.Encode(datauser.Username, os.Getenv(privatekey))
+				if err != nil {
+					return ReturnStruct(response.Message == "gagal encode token :"+err.Error())
+				} else {
+					response.Status = true
+					response.Data.Name = user.Name
+					response.Data.Email = user.Email
+					response.Data.Username = user.Username
+					response.Data.Role = user.Role
+					response.Message = "user berhasil login"
+					response.Token = tokenstring
+					return ReturnStruct(response)
+				}
 			} else {
-				response.Message = "Selamat Datang"
-				response.Token = tokenstring
+				response.Message = "password salah"
 			}
 		} else {
-			response.Message = "Password Salah"
+			response.Message = "akun tidak ditemukan"
 		}
+
 	}
 	return ReturnStruct(response)
 }
 
-func HapusUser(mongoenv, dbname, collname string, r *http.Request) string {
-	var response Credential
+func HapusUser(publickey, mongoenv, dbname, collname string, r *http.Request) string {
+	var response CredentialUser
 	response.Status = false
 	mconn := SetConnection(mongoenv, dbname)
+	var auth User
 	var datauser User
-	err := json.NewDecoder(r.Body).Decode(&datauser)
-	if err != nil {
-		response.Message = "error parsing application/json: " + err.Error()
+
+	goblok := r.Header.Get("token")
+
+	if goblok == "" {
+		response.Message = "header login tidak ditemukan"
 	} else {
-		DeleteUser(mconn, collname, datauser)
-		response.Message = "Berhasil Delete data"
+		checktoken := watoken.DecodeGetId(os.Getenv(publickey), goblok)
+
+		auth.Username = checktoken //userdata.Username dibuat menjadi checktoken agar userdata.Username dapat digunakan sebagai filter untuk menggunakan function FindUser
+
+		if checktoken == "" {
+			response.Message = "hasil decode tidak ditemukan"
+		} else {
+			if usernameExists(mongoenv, dbname, auth) {
+				auth2 := FindUser(mconn, collname, auth)
+				if auth2.Role.Admin == true {
+					err := json.NewDecoder(r.Body).Decode(&datauser)
+					if err != nil {
+						response.Message = "error parsing application/json: " + err.Error()
+					} else {
+						if datauser.Username == "" {
+							response.Message = "parameter dari function ini adalah username"
+						} else {
+							if usernameExists(mongoenv, dbname, datauser) {
+								DeleteUser(mconn, collname, datauser)
+								response.Status = true
+								response.Message = "berhasil hapus " + datauser.Username + " dari database"
+							} else {
+								response.Message = "akun yang ingin dihapus tidak ditemukan"
+							}
+						}
+					}
+				} else {
+					response.Message = "anda bukan admin jadi tidak diizinkan"
+				}
+			} else {
+				response.Message = "akun tidak ditemukan"
+			}
+		}
 	}
 	return ReturnStruct(response)
 }
 
-func MembuatGeojsonPointHeader(mongoenv, dbname, collname string, r *http.Request) string {
+func UpdateUser(publickey, mongoenv, dbname, collname string, r *http.Request) string {
+	var response CredentialUser
+	response.Status = false
 	mconn := SetConnection(mongoenv, dbname)
+	var auth User
+	var datauser User
 
-	var datapoint GeoJsonPoint
-	err := json.NewDecoder(r.Body).Decode(&datapoint)
-	if err != nil {
-		return err.Error()
-	}
+	goblok := r.Header.Get("token")
 
-	if r.Header.Get("token") == os.Getenv("token") {
-		err := PostPoint(mconn, collname, datapoint)
-		if err != nil {
-			return ReturnStruct(CreateResponse(true, "Success: Point created", datapoint))
-		} else {
-			return ReturnStruct(CreateResponse(false, "Error", nil))
-		}
+	if goblok == "" {
+		response.Message = "header login tidak ditemukan"
 	} else {
-		return ReturnStruct(CreateResponse(false, "Unauthorized: Secret header does not match", nil))
+		checktoken := watoken.DecodeGetId(os.Getenv(publickey), goblok)
+
+		auth.Username = checktoken //userdata.Username dibuat menjadi checktoken agar userdata.Username dapat digunakan sebagai filter untuk menggunakan function FindUser
+
+		if checktoken == "" {
+			response.Message = "hasil decode tidak ditemukan"
+		} else {
+			if usernameExists(mongoenv, dbname, auth) {
+				auth2 := FindUser(mconn, collname, auth)
+				if auth2.Role.Admin == true {
+					err := json.NewDecoder(r.Body).Decode(&datauser)
+					if err != nil {
+						response.Message = "error parsing application/json: " + err.Error()
+					} else {
+						if datauser.Username == "" {
+							response.Message = "parameter dari function ini adalah username"
+						} else {
+							hash, hashErr := HashPassword(datauser.Password)
+							if hashErr != nil {
+								response.Message = "Gagal Hash Password" + err.Error()
+							}
+							if usernameExists(mongoenv, dbname, datauser) {
+								EditUser(mconn, collname, datauser.Name, datauser.Email, datauser.Username, hash, datauser.Role.Admin, datauser.Role.Author, datauser.Role.User)
+								response.Status = true
+								response.Message = "berhasil update " + datauser.Username + " dari database"
+							} else {
+								response.Message = "akun yang ingin diedit tidak ditemukan"
+							}
+						}
+					}
+				} else {
+					response.Message = "anda bukan admin jadi tidak diizinkan"
+				}
+			} else {
+				response.Message = "akun tidak ditemukan"
+			}
+		}
 	}
+	return ReturnStruct(response)
 }
 
-func MembuatGeojsonPolylineHeader(mongoenv, dbname, collname string, r *http.Request) string {
+// ---------------------------------------------------------------------- Berita
+
+func TambahBerita(publickey, mongoenv, dbname, colluser, collberita string, r *http.Request) string {
+	var response CredentialBerita
+	response.Status = false
 	mconn := SetConnection(mongoenv, dbname)
+	var databerita Berita
+	err := json.NewDecoder(r.Body).Decode(&databerita)
 
-	var datapolyline GeoJsonLineString
-	err := json.NewDecoder(r.Body).Decode(&datapolyline)
-	if err != nil {
-		return err.Error()
-	}
+	var auth User
+	goblok := r.Header.Get("token")
 
-	if r.Header.Get("token") == os.Getenv("token") {
-		err := PostLinestring(mconn, collname, datapolyline)
-		if err != nil {
-			return ReturnStruct(CreateResponse(true, "Success: LineString created", datapolyline))
-		} else {
-			return ReturnStruct(CreateResponse(false, "Error", nil))
-		}
+	if goblok == "" {
+		response.Message = "header login tidak ditemukan"
 	} else {
-		return ReturnStruct(CreateResponse(false, "Unauthorized: Secret header does not match", nil))
+		checktoken := watoken.DecodeGetId(os.Getenv(publickey), goblok)
+
+		auth.Username = checktoken //userdata.Username dibuat menjadi checktoken agar userdata.Username dapat digunakan sebagai filter untuk menggunakan function FindUser
+
+		if checktoken == "" {
+			response.Message = "hasil decode tidak ditemukan"
+		} else {
+			if usernameExists(mongoenv, dbname, auth) {
+				auth2 := FindUser(mconn, colluser, auth)
+				if auth2.Role.Author == true {
+					if err != nil {
+						response.Message = "error parsing application/json: " + err.Error()
+					} else {
+						if idBeritaExists(mongoenv, dbname, databerita) {
+							response.Message = "ID telah ada"
+						} else {
+							response.Status = true
+							if err != nil {
+								response.Message = "error parsing application/json: " + err.Error()
+							} else {
+								response.Status = true
+								InsertBerita(mconn, collberita, databerita)
+								response.Message = "berhasil Input data"
+							}
+						}
+					}
+				} else {
+					response.Message = "anda bukan author ataupun admin jadi tidak diizinkan"
+				}
+			} else {
+				response.Message = "akun tidak ditemukan"
+			}
+		}
 	}
+	return ReturnStruct(response)
 }
 
-func MembuatGeojsonPolygonHeader(mongoenv, dbname, collname string, r *http.Request) string {
+func AmbilDataBerita(publickey, mongoenv, dbname, colluser, collberita string, r *http.Request) string {
+	var response CredentialBerita
+	response.Status = false
 	mconn := SetConnection(mongoenv, dbname)
 
-	var datapolygon GeoJsonPolygon
-	err := json.NewDecoder(r.Body).Decode(&datapolygon)
-	if err != nil {
-		return err.Error()
-	}
+	var auth User
+	goblok := r.Header.Get("token")
 
-	if r.Header.Get("token") == os.Getenv("token") {
-		err := PostPolygon(mconn, collname, datapolygon)
-		if err != nil {
-			return ReturnStruct(CreateResponse(true, "Success: Polygon created", datapolygon))
-		} else {
-			return ReturnStruct(CreateResponse(false, "Error", nil))
-		}
+	if goblok == "" {
+		response.Message = "header login tidak ditemukan"
 	} else {
-		return ReturnStruct(CreateResponse(false, "Unauthorized: Secret header does not match", nil))
+		checktoken := watoken.DecodeGetId(os.Getenv(publickey), goblok)
+
+		auth.Username = checktoken //userdata.Username dibuat menjadi checktoken agar userdata.Username dapat digunakan sebagai filter untuk menggunakan function FindUser
+
+		if checktoken == "" {
+			response.Message = "hasil decode tidak ditemukan"
+		} else {
+			if usernameExists(mongoenv, dbname, auth) {
+				auth2 := FindUser(mconn, colluser, auth)
+				if auth2.Role.User == true {
+					databerita := GetAllBerita(mconn, collberita)
+					return ReturnStruct(databerita)
+				} else {
+					response.Message = "akun anda tidak aktif"
+				}
+			} else {
+				response.Message = "akun tidak ditemukan"
+			}
+		}
 	}
+	return ReturnStruct(response)
 }
 
-func AmbilDataGeojsonHeader(mongoenv, dbname, collname string, r *http.Request) string {
+func AmbilSatuBerita(publickey, mongoenv, dbname, colluser, collberita string, r *http.Request) string {
+	var response CredentialBerita
+	response.Status = false
 	mconn := SetConnection(mongoenv, dbname)
 
-	if r.Header.Get("token") == os.Getenv("token") {
-		datagedung := GetAllBangunanLineString(mconn, collname)
-		err := json.NewDecoder(r.Body).Decode(&datagedung)
-		if err != nil {
-			return ReturnStruct(CreateResponse(true, "Success: GeoJson shown", datagedung))
-		} else {
-			return ReturnStruct(CreateResponse(false, "Error", nil))
-		}
+	var databerita Berita
+
+	var auth User
+	goblok := r.Header.Get("token")
+
+	if goblok == "" {
+		response.Message = "header login tidak ditemukan"
 	} else {
-		return ReturnStruct(CreateResponse(false, "Unauthorized: Secret header does not match", nil))
+		checktoken := watoken.DecodeGetId(os.Getenv(publickey), goblok)
+
+		auth.Username = checktoken //userdata.Username dibuat menjadi checktoken agar userdata.Username dapat digunakan sebagai filter untuk menggunakan function FindUser
+
+		if checktoken == "" {
+			response.Message = "hasil decode tidak ditemukan"
+		} else {
+			if usernameExists(mongoenv, dbname, auth) {
+				auth2 := FindUser(mconn, colluser, auth)
+				if auth2.Role.User == true {
+					idberita := r.URL.Query().Get("page")
+					databerita.ID = idberita
+					if idBeritaExists(mongoenv, dbname, databerita) {
+						berita := FindBerita(mconn, collberita, databerita)
+						return ReturnStruct(berita)
+					} else {
+						response.Message = "berita tidak ditemukan"
+					}
+				} else {
+					response.Message = "akun anda tidak aktif"
+				}
+			} else {
+				response.Message = "akun tidak ditemukan"
+			}
+		}
 	}
+	return ReturnStruct(response)
 }
+
+func HapusBerita(publickey, mongoenv, dbname, colluser, collberita string, r *http.Request) string {
+	var response CredentialBerita
+	response.Status = false
+	mconn := SetConnection(mongoenv, dbname)
+	var auth User
+	var databerita Berita
+
+	goblok := r.Header.Get("token")
+
+	if goblok == "" {
+		response.Message = "header login tidak ditemukan"
+	} else {
+		checktoken := watoken.DecodeGetId(os.Getenv(publickey), goblok)
+
+		auth.Username = checktoken //userdata.Username dibuat menjadi checktoken agar userdata.Username dapat digunakan sebagai filter untuk menggunakan function FindUser
+
+		if checktoken == "" {
+			response.Message = "hasil decode tidak ditemukan"
+		} else {
+			if usernameExists(mongoenv, dbname, auth) {
+				auth2 := FindUser(mconn, colluser, auth)
+				if auth2.Role.Author == true || auth2.Role.Admin == true {
+					err := json.NewDecoder(r.Body).Decode(&databerita)
+					if err != nil {
+						response.Message = "error parsing application/json: " + err.Error()
+					} else {
+						if databerita.ID == "" {
+							response.Message = "parameter dari function ini adalah id"
+						} else {
+							if idBeritaExists(mongoenv, dbname, databerita) {
+								DeleteBerita(mconn, collberita, databerita)
+								response.Status = true
+								response.Message = "berhasil hapus " + databerita.ID + " dari database"
+							} else {
+								response.Message = "berita tidak ditemukan"
+							}
+						}
+					}
+				} else {
+					response.Message = "anda bukan author ataupun admin jadi tidak diizinkan"
+				}
+			} else {
+				response.Message = "akun tidak ditemukan"
+			}
+		}
+	}
+	return ReturnStruct(response)
+}
+
+func UpdateBerita(publickey, mongoenv, dbname, colluser, collberita string, r *http.Request) string {
+	var response CredentialBerita
+	response.Status = false
+	mconn := SetConnection(mongoenv, dbname)
+	var auth User
+	var databerita Berita
+
+	goblok := r.Header.Get("token")
+
+	if goblok == "" {
+		response.Message = "header login tidak ditemukan"
+	} else {
+		checktoken := watoken.DecodeGetId(os.Getenv(publickey), goblok)
+
+		auth.Username = checktoken //userdata.Username dibuat menjadi checktoken agar userdata.Username dapat digunakan sebagai filter untuk menggunakan function FindUser
+
+		if checktoken == "" {
+			response.Message = "hasil decode tidak ditemukan"
+		} else {
+			if usernameExists(mongoenv, dbname, auth) {
+				auth2 := FindUser(mconn, colluser, auth)
+				if auth2.Role.Admin == true {
+					err := json.NewDecoder(r.Body).Decode(&databerita)
+					if err != nil {
+						response.Message = "error parsing application/json: " + err.Error()
+					} else {
+						if databerita.ID == "" {
+							response.Message = "parameter dari function ini adalah id"
+						} else {
+							if idBeritaExists(mongoenv, dbname, databerita) {
+								EditBerita(mconn, collberita, databerita)
+								response.Status = true
+								response.Message = "berhasil update " + databerita.ID + " dari database"
+							} else {
+								response.Message = "berita tidak ditemukan"
+							}
+						}
+					}
+				} else {
+					response.Message = "anda bukan admin jadi tidak diizinkan"
+				}
+			} else {
+				response.Message = "akun tidak ditemukan"
+			}
+		}
+	}
+	return ReturnStruct(response)
+}
+
+// -------------------------------------------------------------------- Pemrograman --------------------------------------------------------------------
 
 func AmbilDataKegiatan(mongoenv, dbname, collname string) string {
 	mconn := SetConnection(mongoenv, dbname)
@@ -221,276 +625,4 @@ func AmbilDataJadwal(mongoenv, dbname, collname string) string {
 	mconn := SetConnection(mongoenv, dbname)
 	datajadwal := GetAllJadwal(mconn, collname)
 	return ReturnStruct(datajadwal)
-}
-
-//-----------------------test buat project, nanti hapus kalo udah
-
-func TambahBerita(mongoenv, dbname, collname string, r *http.Request) string {
-	var response Credential
-	response.Status = false
-	mconn := SetConnection(mongoenv, dbname)
-	var databerita Berita
-	err := json.NewDecoder(r.Body).Decode(&databerita)
-	if idBeritaExists(mongoenv, dbname, databerita) {
-		response.Status = false
-		response.Message = "ID telah ada"
-	} else {
-		response.Status = true
-		if err != nil {
-			response.Message = "error parsing application/json: " + err.Error()
-		} else {
-			response.Status = true
-			InsertBerita(mconn, collname, databerita.ID, databerita.Kategori, databerita.Judul, databerita.Preview, databerita.Konten)
-			response.Message = "Berhasil Input data"
-		}
-	}
-	return ReturnStruct(response)
-}
-
-func AmbilDataBerita(mongoenv, dbname, collname string) string {
-	mconn := SetConnection(mongoenv, dbname)
-	databerita := GetAllBerita(mconn, collname)
-	return ReturnStruct(databerita)
-}
-
-func AmbilSatuBerita(mongoenv, dbname, collname string, r *http.Request) string {
-	mconn := SetConnection(mongoenv, dbname)
-	var databerita Berita
-	berita := FindBerita(mconn, collname, databerita)
-
-	return ReturnStruct(berita)
-}
-
-// -------------coba decode
-
-func CobaCobaAja(publickey string, r *http.Request) string {
-	req := new(ResponseDataUser)
-	req.Status = false
-
-	// Read cookie
-	cookie, err := r.Cookie("token")
-	if err != nil {
-		req.Message = "error parsing cookie: " + err.Error()
-	}
-
-	checktoken := watoken.DecodeGetId(os.Getenv(publickey), cookie.Value)
-	if checktoken == "" {
-		req.Message = "hasil decode tidak ada"
-	} else {
-		req.Message = checktoken
-	}
-
-	return ReturnStruct(req)
-}
-
-func Authorization(publickey, mongoenv, dbname, collname string, r *http.Request) string {
-	var req AuthorizationStruct
-	req.Status = false
-
-	mconn := SetConnection(mongoenv, dbname)
-
-	var userdata User
-
-	// Read cookie
-	cookie, err := r.Cookie("token")
-	if err != nil {
-		req.Message = "error parsing cookie: " + err.Error()
-	}
-	checktoken := watoken.DecodeGetId(os.Getenv(publickey), cookie.Value)
-
-	userdata.Username = checktoken //userdata.Username dibuat menjadi checktoken agar userdata.Username dapat digunakan sebagai filter untuk menggunakan function FindUser
-
-	if checktoken == "" {
-		req.Message = "hasil decode tidak ada"
-	} else {
-		req.Message = "hasil decode token"
-		datauser := FindUser(mconn, collname, userdata)
-		req.Status = true
-		req.Data.Username = datauser.Username
-		req.Data.Name = datauser.Name
-		req.Data.Email = datauser.Email
-		req.Data.Role = datauser.Role
-	}
-
-	return ReturnStruct(req)
-}
-
-func AuthorizationHeaders(publickey, mongoenv, dbname, collname string, r *http.Request) string {
-	var req AuthorizationStruct
-	req.Status = false
-
-	mconn := SetConnection(mongoenv, dbname)
-
-	var userdata User
-	goblok := r.Header.Get("token")
-
-	checktoken := watoken.DecodeGetId(os.Getenv(publickey), goblok)
-
-	userdata.Username = checktoken //userdata.Username dibuat menjadi checktoken agar userdata.Username dapat digunakan sebagai filter untuk menggunakan function FindUser
-
-	if checktoken == "" {
-		req.Message = "hasil decode tidak ada"
-	} else {
-		req.Message = "hasil decode token"
-		datauser := FindUser(mconn, collname, userdata)
-		req.Status = true
-		req.Data.Username = datauser.Username
-		req.Data.Name = datauser.Name
-		req.Data.Email = datauser.Email
-		req.Data.Role = datauser.Role
-	}
-
-	return ReturnStruct(req)
-}
-
-func HapusUserproyek(publickey, mongoenv, dbname, collname string, r *http.Request) string {
-	var response Credential
-	response.Status = false
-	mconn := SetConnection(mongoenv, dbname)
-	var auth User
-	var datauser User
-
-	goblok := r.Header.Get("token")
-
-	if goblok == "" {
-		response.Message = "Header Login Not Found"
-	} else {
-		checktoken := watoken.DecodeGetId(os.Getenv(publickey), goblok)
-
-		auth.Username = checktoken //userdata.Username dibuat menjadi checktoken agar userdata.Username dapat digunakan sebagai filter untuk menggunakan function FindUser
-
-		if checktoken == "" {
-			response.Message = "hasil decode tidak ditemukan"
-		} else {
-			auth2 := FindUser(mconn, collname, auth)
-			if auth2.Role.Admin != true {
-				response.Message = "anda bukan admin jadi tidak diizinkan"
-			} else {
-				err := json.NewDecoder(r.Body).Decode(&datauser)
-				if err != nil {
-					response.Message = "error parsing application/json: " + err.Error()
-				} else {
-					if datauser.Username == "" {
-						response.Message = "parameter dari function ini adalah username"
-					} else {
-						DeleteUser(mconn, collname, datauser)
-						response.Status = true
-						response.Message = "berhasil hapus " + datauser.Username + " dari database"
-					}
-				}
-			}
-		}
-	}
-	return ReturnStruct(response)
-}
-
-func UpdateUserproyek(publickey, mongoenv, dbname, collname string, r *http.Request) string {
-	var response Credential
-	response.Status = false
-	mconn := SetConnection(mongoenv, dbname)
-	var auth User
-	var datauser User
-
-	goblok := r.Header.Get("token")
-
-	if goblok == "" {
-		response.Message = "Header Login Not Found"
-	} else {
-		checktoken := watoken.DecodeGetId(os.Getenv(publickey), goblok)
-
-		auth.Username = checktoken //userdata.Username dibuat menjadi checktoken agar userdata.Username dapat digunakan sebagai filter untuk menggunakan function FindUser
-
-		if checktoken == "" {
-			response.Message = "hasil decode tidak ditemukan"
-		} else {
-			auth2 := FindUser(mconn, collname, auth)
-			if auth2.Role.Admin != true {
-				response.Message = "anda bukan admin jadi tidak diizinkan"
-			} else {
-				err := json.NewDecoder(r.Body).Decode(&datauser)
-				if err != nil {
-					response.Message = "error parsing application/json: " + err.Error()
-				} else {
-					if datauser.Username == "" {
-						response.Message = "parameter dari function ini adalah username"
-					} else {
-						UpdateUser(mconn, collname, datauser)
-						response.Status = true
-						response.Message = "berhasil update " + datauser.Username + " dari database"
-					}
-				}
-			}
-		}
-	}
-	return ReturnStruct(response)
-}
-
-func AmbilSatuBeritaPage(publickey, mongoenv, dbname, colluser, collberita string, r *http.Request) string {
-	var response Pesan
-	response.Status = false
-	mconn := SetConnection(mongoenv, dbname)
-
-	var databerita Berita
-
-	var auth User
-	goblok := r.Header.Get("token")
-
-	if goblok == "" {
-		response.Message = "header login tidak ditemukan"
-	} else {
-		checktoken := watoken.DecodeGetId(os.Getenv(publickey), goblok)
-
-		auth.Username = checktoken //userdata.Username dibuat menjadi checktoken agar userdata.Username dapat digunakan sebagai filter untuk menggunakan function FindUser
-
-		if checktoken == "" {
-			response.Message = "hasil decode tidak ditemukan"
-		} else {
-			auth2 := FindUser(mconn, colluser, auth)
-			if auth2.Role.User != true {
-				response.Message = "akun anda tidak aktif"
-			} else {
-				idberita := r.URL.Query().Get("page")
-				databerita.ID = idberita
-				berita := FindBerita(mconn, collberita, databerita)
-
-				return ReturnStruct(berita)
-			}
-		}
-	}
-	return ReturnStruct(response)
-}
-
-func AmbilSatuBeritaJson(publickey, mongoenv, dbname, colluser, collberita string, r *http.Request) string {
-	var response Pesan
-	response.Status = false
-	mconn := SetConnection(mongoenv, dbname)
-
-	var databerita Berita
-
-	var auth User
-	goblok := r.Header.Get("token")
-
-	if goblok == "" {
-		response.Message = "header login tidak ditemukan"
-	} else {
-		checktoken := watoken.DecodeGetId(os.Getenv(publickey), goblok)
-
-		auth.Username = checktoken //userdata.Username dibuat menjadi checktoken agar userdata.Username dapat digunakan sebagai filter untuk menggunakan function FindUser
-
-		if checktoken == "" {
-			response.Message = "hasil decode tidak ditemukan"
-		} else {
-			auth2 := FindUser(mconn, colluser, auth)
-			if auth2.Role.User != true {
-				response.Message = "akun anda tidak aktif"
-			} else {
-				// idberita := r.URL.Query().Get("page")
-				// databerita.ID = idberita
-				berita := FindBerita(mconn, collberita, databerita)
-
-				return ReturnStruct(berita)
-			}
-		}
-	}
-	return ReturnStruct(response)
 }

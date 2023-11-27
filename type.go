@@ -1,5 +1,7 @@
 package peda
 
+import "go.mongodb.org/mongo-driver/bson/primitive"
+
 type GeometryPolygon struct {
 	Coordinates [][][]float64 `json:"coordinates" bson:"coordinates"`
 	Type        string        `json:"type" bson:"type"`
@@ -43,35 +45,26 @@ type GeoJson struct {
 	Geometry   Geometry   `json:"geometry" bson:"geometry"`
 }
 
+type Lokasi struct {
+	ID         primitive.ObjectID `bson:"_id,omitempty"`
+	Properties Name               `bson:"properties,omitempty"`
+	Geometry   Geometry           `bson:"geometry,omitempty"`
+	Kategori   string             `bson:"kategori,omitempty"`
+}
+
+type Name struct {
+	Name string `bson:"name,omitempty"`
+}
+
+type LongLat struct {
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+}
+
+// --------------------------------------------------------------------- Projek 3 ---------------------------------------------------------------------
+
 type Properties struct {
 	Name string `json:"name" bson:"name"`
-}
-
-type User struct {
-	Name     string    `json:"name,omitempty" bson:"name,omitempty"`
-	Email    string    `json:"email,omitempty" bson:"email,omitempty"`
-	Username string    `json:"username" bson:"username"`
-	Password string    `json:"password" bson:"password"`
-	Role     SemuaRole `json:"role,omitempty" bson:"role,omitempty"`
-	Token    string    `json:"token,omitempty" bson:"token,omitempty"`
-	Private  string    `json:"private,omitempty" bson:"private,omitempty"`
-	Publick  string    `json:"publick,omitempty" bson:"publick,omitempty"`
-}
-
-type Credential struct {
-	Status  bool   `json:"status" bson:"status"`
-	Token   string `json:"token,omitempty" bson:"token,omitempty"`
-	Message string `json:"message,omitempty" bson:"message,omitempty"`
-}
-
-type ResponseDataUser struct {
-	Status  bool   `json:"status" bson:"status"`
-	Message string `json:"message,omitempty" bson:"message,omitempty"`
-	Data    []User `json:"data,omitempty" bson:"data,omitempty"`
-}
-
-type Response struct {
-	Token string `json:"token,omitempty" bson:"token,omitempty"`
 }
 
 type Pesan struct {
@@ -83,21 +76,6 @@ type Coordinate struct {
 	Type        string    `json:"type" bson:"type"`
 	Name        string    `json:"name" bson:"name"`
 	Coordinates []float64 `json:"coordinates" bson:"coordinates"`
-}
-
-type Token struct {
-	Key    string
-	Values string
-}
-
-type PostToken struct {
-	Response string `json:"response"`
-}
-
-type Jaja struct {
-	Status  bool        `json:"status" bson:"status"`
-	Message string      `json:"message" bson:"message"`
-	Data    interface{} `json:"data" bson:"data"`
 }
 
 type Kegiatan struct {
@@ -114,26 +92,11 @@ type Jadwal struct {
 	Jam  string `json:"jam" bson:"jam"`
 }
 
-//-----------------------test buat project, nanti hapus kalo udah
-
-type Berita struct {
-	ID       string `json:"id" bson:"id"`
-	Kategori string `json:"kategori" bson:"kategori"`
-	Judul    string `json:"judul" bson:"judul"`
-	Preview  string `json:"preview" bson:"preview"`
-	Konten   string `json:"konten" bson:"konten"`
-}
-
-type AuthorizationStruct struct {
-	Status  bool     `json:"status" bson:"status"`
-	Data    UserAuth `json:"data,omitempty" bson:"data,omitempty"`
-	Message string   `json:"message,omitempty" bson:"message,omitempty"`
-}
-
-type UserAuth struct {
+type User struct {
 	Name     string    `json:"name,omitempty" bson:"name,omitempty"`
 	Email    string    `json:"email,omitempty" bson:"email,omitempty"`
-	Username string    `json:"username,omitempty" bson:"username,omitempty"`
+	Username string    `json:"username" bson:"username"`
+	Password string    `json:"password" bson:"password"`
 	Role     SemuaRole `json:"role,omitempty" bson:"role,omitempty"`
 }
 
@@ -141,4 +104,46 @@ type SemuaRole struct {
 	Admin  bool `json:"admin" bson:"admin"`
 	Author bool `json:"author" bson:"author"`
 	User   bool `json:"user" bson:"user"`
+}
+
+type CredentialUser struct {
+	Status  bool   `json:"status" bson:"status"`
+	Data    User   `json:"data,omitempty" bson:"data,omitempty"`
+	Message string `json:"message,omitempty" bson:"message,omitempty"`
+	Token   string `json:"token,omitempty" bson:"token,omitempty"`
+}
+
+type CredentialBerita struct {
+	Status  bool   `json:"status" bson:"status"`
+	Data    Berita `json:"data,omitempty" bson:"data,omitempty"`
+	Message string `json:"message,omitempty" bson:"message,omitempty"`
+	Token   string `json:"token,omitempty" bson:"token,omitempty"`
+}
+
+type CredentialGeojson struct {
+	Status  bool    `json:"status" bson:"status"`
+	Data    GeoJson `json:"data,omitempty" bson:"data,omitempty"`
+	Message string  `json:"message,omitempty" bson:"message,omitempty"`
+	Token   string  `json:"token,omitempty" bson:"token,omitempty"`
+}
+
+type Berita struct {
+	ID       string   `json:"id" bson:"id"`
+	Kategori string   `json:"kategori" bson:"kategori"`
+	Judul    string   `json:"judul" bson:"judul"`
+	Preview  string   `json:"preview" bson:"preview"`
+	Konten   Paragraf `json:"konten" bson:"konten"`
+}
+
+type Paragraf struct {
+	Paragraf1  string `json:"paragraf1,omitempty" bson:"paragraf1,omitempty"`
+	Paragraf2  string `json:"paragraf2,omitempty" bson:"paragraf2,omitempty"`
+	Paragraf3  string `json:"paragraf3,omitempty" bson:"paragraf3,omitempty"`
+	Paragraf4  string `json:"paragraf4,omitempty" bson:"paragraf4,omitempty"`
+	Paragraf5  string `json:"paragraf5,omitempty" bson:"paragraf5,omitempty"`
+	Paragraf6  string `json:"paragraf6,omitempty" bson:"paragraf6,omitempty"`
+	Paragraf7  string `json:"paragraf7,omitempty" bson:"paragraf7,omitempty"`
+	Paragraf8  string `json:"paragraf8,omitempty" bson:"paragraf8,omitempty"`
+	Paragraf9  string `json:"paragraf9,omitempty" bson:"paragraf9,omitempty"`
+	Paragraf10 string `json:"paragraf10,omitempty" bson:"paragraf10,omitempty"`
 }

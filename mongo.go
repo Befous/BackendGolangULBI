@@ -2,10 +2,10 @@ package peda
 
 import (
 	"context"
+	"log"
 	"os"
 
 	"github.com/aiteung/atdb"
-	"github.com/whatsauth/watoken"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -18,28 +18,16 @@ func SetConnection(mongoenv, dbname string) *mongo.Database {
 	return atdb.MongoConnect(DBmongoinfo)
 }
 
-func CompareUsername(mongoenv *mongo.Database, collname, username string) bool {
-	filter := bson.M{"username": username}
-	err := atdb.GetOneDoc[User](mongoenv, collname, filter)
-	users := err.Username
-	if users == "" {
-		return false
+func SetConnectionTest(mongostring, dbname string) *mongo.Database {
+	var DBmongoinfo = atdb.DBInfo{
+		DBString: mongostring,
+		DBName:   dbname,
 	}
-	return true
+	return atdb.MongoConnect(DBmongoinfo)
 }
 
 func GetAllBangunanLineString(mongoenv *mongo.Database, collname string) []GeoJson {
 	lokasi := atdb.GetAllDoc[[]GeoJson](mongoenv, collname)
-	return lokasi
-}
-
-func GetAllKegiatan(mongoenv *mongo.Database, collname string) []Kegiatan {
-	kegiatan := atdb.GetAllDoc[[]Kegiatan](mongoenv, collname)
-	return kegiatan
-}
-
-func GetAllJadwal(mongoenv *mongo.Database, collname string) []Jadwal {
-	lokasi := atdb.GetAllDoc[[]Jadwal](mongoenv, collname)
 	return lokasi
 }
 
@@ -65,74 +53,32 @@ func MemasukkanKoordinat(MongoConn *mongo.Database, colname string, coordinate [
 	return ins
 }
 
-func GetNameAndPassowrd(mongoenv *mongo.Database, collname string) []User {
-	user := atdb.GetAllDoc[[]User](mongoenv, collname)
-	return user
-}
-
-func GetAllUser(mongoenv *mongo.Database, collname string) []User {
-	user := atdb.GetAllDoc[[]User](mongoenv, collname)
-	return user
-}
-func CreateNewUserRole(mongoenv *mongo.Database, collname string, userdata User) interface{} {
-	// Hash the password before storing it
-	hashedPassword, err := HashPassword(userdata.Password)
-	if err != nil {
-		return err
-	}
-	userdata.Password = hashedPassword
-
-	// Insert the user data into the database
-	return atdb.InsertOneDoc(mongoenv, collname, userdata)
-}
-func CreateUserAndAddedToeken(privatekey string, mongoenv *mongo.Database, collname string, userdata User) interface{} {
-	// Hash the password before storing it
-	hashedPassword, err := HashPassword(userdata.Password)
-	if err != nil {
-		return err
-	}
-	userdata.Password = hashedPassword
-
-	// Insert the user data into the database
-	atdb.InsertOneDoc(mongoenv, collname, userdata)
-
-	// Create a token for the user
-	tokenstring, err := watoken.Encode(userdata.Username, os.Getenv(privatekey))
-	if err != nil {
-		return err
-	}
-	userdata.Token = tokenstring
-
-	// Update the user data in the database
-	return atdb.ReplaceOneDoc(mongoenv, collname, bson.M{"username": userdata.Username}, userdata)
-}
-
-func DeleteUser(mongoenv *mongo.Database, collname string, userdata User) interface{} {
-	filter := bson.M{"username": userdata.Username}
-	return atdb.DeleteOneDoc(mongoenv, collname, filter)
-}
-func UpdateUser(mongoenv *mongo.Database, collname string, userdata User) interface{} {
-	filter := bson.M{"username": userdata.Username}
-	return atdb.ReplaceOneDoc(mongoenv, collname, filter, userdata)
-}
-func FindUser(mongoenv *mongo.Database, collname string, userdata User) User {
-	filter := bson.M{"username": userdata.Username}
-	return atdb.GetOneDoc[User](mongoenv, collname, filter)
-}
-
-func FindUserUser(mongoenv *mongo.Database, collname string, userdata User) User {
+func GeoIntersects(mongoconn *mongo.Database, long float64, lat float64) (namalokasi string) {
+	lokasicollection := mongoconn.Collection("geojson")
 	filter := bson.M{
-		"username": userdata.Username,
+		"geometry": bson.M{
+			"$geoIntersects": bson.M{
+				"$geometry": bson.M{
+					"type":        "Point",
+					"coordinates": []float64{long, lat},
+				},
+			},
+		},
 	}
-	return atdb.GetOneDoc[User](mongoenv, collname, filter)
+	var lokasi Lokasi
+	err := lokasicollection.FindOne(context.TODO(), filter).Decode(&lokasi)
+	if err != nil {
+		log.Printf("GeoIntersects: %v\n", err)
+	}
+	return lokasi.Properties.Name
+
 }
 
-func IsPasswordValid(mongoenv *mongo.Database, collname string, userdata User) bool {
-	filter := bson.M{"username": userdata.Username}
-	res := atdb.GetOneDoc[User](mongoenv, collname, filter)
-	hashChecker := CheckPasswordHash(userdata.Password, res.Password)
-	return hashChecker
-}
+// --------------------------------------------------------------------- Projek 3 ---------------------------------------------------------------------
+
+// ---------------------------------------------------------------------- User
+
+// Create
 
 func InsertUserdata(mongoenv *mongo.Database, collname, name, email, username, password string, admin, author bool) (InsertedID interface{}) {
 	req := new(User)
@@ -146,6 +92,25 @@ func InsertUserdata(mongoenv *mongo.Database, collname, name, email, username, p
 	return atdb.InsertOneDoc(mongoenv, collname, req)
 }
 
+// Read
+
+func GetAllUser(mongoenv *mongo.Database, collname string) []User {
+	user := atdb.GetAllDoc[[]User](mongoenv, collname)
+	return user
+}
+
+func FindUser(mongoenv *mongo.Database, collname string, userdata User) User {
+	filter := bson.M{"username": userdata.Username}
+	return atdb.GetOneDoc[User](mongoenv, collname, filter)
+}
+
+func IsPasswordValid(mongoenv *mongo.Database, collname string, userdata User) bool {
+	filter := bson.M{"username": userdata.Username}
+	res := atdb.GetOneDoc[User](mongoenv, collname, filter)
+	hashChecker := CheckPasswordHash(userdata.Password, res.Password)
+	return hashChecker
+}
+
 func usernameExists(mongoenv, dbname string, userdata User) bool {
 	mconn := SetConnection(mongoenv, dbname).Collection("user")
 	filter := bson.M{"username": userdata.Username}
@@ -155,16 +120,38 @@ func usernameExists(mongoenv, dbname string, userdata User) bool {
 	return err == nil
 }
 
-func CreateResponse(status bool, message string, data interface{}) Jaja {
-	response := Jaja{
-		Status:  status,
-		Message: message,
-		Data:    data,
-	}
-	return response
+// Update
+
+func EditUser(mongoenv *mongo.Database, collname, name, email, username, password string, admin, author, user bool) interface{} {
+
+	req := new(User)
+	req.Name = name
+	req.Email = email
+	req.Username = username
+	req.Password = password
+	req.Role.Admin = admin
+	req.Role.Author = author
+	req.Role.User = user
+	filter := bson.M{"username": username}
+	return atdb.ReplaceOneDoc(mongoenv, collname, filter, req)
 }
 
-//-----------------------test buat project, nanti hapus kalo udah
+// Delete
+
+func DeleteUser(mongoenv *mongo.Database, collname string, userdata User) interface{} {
+	filter := bson.M{"username": userdata.Username}
+	return atdb.DeleteOneDoc(mongoenv, collname, filter)
+}
+
+//-------------------------------------------------------------------- Berita
+
+// Create
+
+func InsertBerita(mongoenv *mongo.Database, collname string, databerita Berita) interface{} {
+	return atdb.InsertOneDoc(mongoenv, collname, databerita)
+}
+
+// Read
 
 func GetAllBerita(mongoenv *mongo.Database, collname string) []Berita {
 	berita := atdb.GetAllDoc[[]Berita](mongoenv, collname)
@@ -185,12 +172,28 @@ func idBeritaExists(mongoenv, dbname string, databerita Berita) bool {
 	return err == nil
 }
 
-func InsertBerita(mongoenv *mongo.Database, collname, id, kategori, judul, preview, konten string) (InsertedID interface{}) {
-	req := new(Berita)
-	req.ID = id
-	req.Kategori = kategori
-	req.Judul = judul
-	req.Preview = preview
-	req.Konten = konten
-	return atdb.InsertOneDoc(mongoenv, collname, req)
+// Update
+
+func EditBerita(mongoenv *mongo.Database, collname string, databerita Berita) interface{} {
+	filter := bson.M{"id": databerita.ID}
+	return atdb.ReplaceOneDoc(mongoenv, collname, filter, databerita)
+}
+
+// Delete
+
+func DeleteBerita(mongoenv *mongo.Database, collname string, databerita Berita) interface{} {
+	filter := bson.M{"id": databerita.ID}
+	return atdb.DeleteOneDoc(mongoenv, collname, filter)
+}
+
+// -------------------------------------------------------------------- Pemrograman --------------------------------------------------------------------
+
+func GetAllKegiatan(mongoenv *mongo.Database, collname string) []Kegiatan {
+	kegiatan := atdb.GetAllDoc[[]Kegiatan](mongoenv, collname)
+	return kegiatan
+}
+
+func GetAllJadwal(mongoenv *mongo.Database, collname string) []Jadwal {
+	lokasi := atdb.GetAllDoc[[]Jadwal](mongoenv, collname)
+	return lokasi
 }
