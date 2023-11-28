@@ -314,7 +314,7 @@ func Login(token, privatekey, mongoenv, dbname, collname string, r *http.Request
 				user := FindUser(mconn, collname, datauser)
 				tokenstring, err := watoken.Encode(datauser.Username, os.Getenv(privatekey))
 				dt := &wa.TextMessage{
-					To:       user.Nomor_hp,
+					To:       user.Phone_number,
 					IsGroup:  false,
 					Messages: "Selamat datang " + user.Name,
 				}
@@ -329,7 +329,7 @@ func Login(token, privatekey, mongoenv, dbname, collname string, r *http.Request
 					response.Message = "selamat anda berhasil login"
 					response.Token = tokenstring
 
-					atapi.PostStructWithToken[atmessage.Response]("Token", os.Getenv(token), dt, "https://api.wa.my.id/api/send/message/text")
+					atapi.PostStructWithToken[atmessage.Response]("Token", r.Header.Get("token"), dt, "https://api.wa.my.id/api/send/message/text")
 					response.Message = resp.Response
 					return ReturnStruct(response)
 				}
