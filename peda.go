@@ -309,6 +309,7 @@ func Login(privatekey, mongoenv, dbname, collname string, r *http.Request) strin
 		if IsPasswordValid(mconn, collname, datauser) {
 			user := FindUser(mconn, collname, datauser)
 			var nama = user.Name
+			var nohp = user.No_whatsapp
 			tokenstring, err := watoken.Encode(datauser.Username, os.Getenv(privatekey))
 			if err != nil {
 				return ReturnStruct(response.Message == "Gagal Encode Token :"+err.Error())
@@ -322,9 +323,9 @@ func Login(privatekey, mongoenv, dbname, collname string, r *http.Request) strin
 				response.Message = "berhasil login"
 
 				dt := &wa.TextMessage{
-					To:       "6281271720763",
+					To:       nohp,
 					IsGroup:  false,
-					Messages: nama + "berhasil login",
+					Messages: nama + " berhasil login",
 				}
 
 				atapi.PostStructWithToken[atmessage.Response]("Token", r.Header.Get("token"), dt, "https://api.wa.my.id/api/send/message/text")
