@@ -277,24 +277,12 @@ func Registrasi(mongoenv, dbname, collname string, r *http.Request) string {
 			if hashErr != nil {
 				response.Message = "Gagal Hash Password" + err.Error()
 			}
-			InsertUserdata(mconn, collname, datauser.Name, datauser.Email, datauser.Username, hash, datauser.Role.Admin, datauser.Role.Author)
+			InsertUserdata(mconn, collname, datauser.Name, datauser.Email, datauser.Username, datauser.No_whatsapp, hash, datauser.Role.Admin, datauser.Role.Author)
 			response.Status = true
 			response.Message = "Berhasil Input data"
 		}
 	}
 	return ReturnStruct(response)
-}
-
-func whatapp(token string, r *http.Request) string {
-	var resp atmessage.Response
-
-	dt := &wa.TextMessage{
-		To:       "6281271720763",
-		IsGroup:  false,
-		Messages: "Selamat datang ",
-	}
-	resp, _ = atapi.PostStructWithToken[atmessage.Response]("Token", os.Getenv(token), dt, "https://api.wa.my.id/api/send/message/text")
-	return ReturnStruct(resp)
 }
 
 func Login(privatekey, mongoenv, dbname, collname string, r *http.Request) string {

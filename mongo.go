@@ -167,7 +167,7 @@ func Near(mongoconn *mongo.Database, long float64, lat float64) (namalokasi stri
 
 // Create
 
-func InsertUserdata(mongoenv *mongo.Database, collname, name, email, username, password string, admin, author bool) (InsertedID interface{}) {
+func InsertUserdata(mongoenv *mongo.Database, collname, name, email, username, password, no_whatsapp string, admin, author bool) (InsertedID interface{}) {
 	req := new(User)
 	req.Name = name
 	req.Email = email
@@ -176,6 +176,7 @@ func InsertUserdata(mongoenv *mongo.Database, collname, name, email, username, p
 	req.Role.Admin = admin
 	req.Role.Author = author
 	req.Role.User = true
+	req.No_whatsapp = no_whatsapp
 	return atdb.InsertOneDoc(mongoenv, collname, req)
 }
 

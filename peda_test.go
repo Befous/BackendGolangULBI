@@ -56,3 +56,9 @@ func TestNear(t *testing.T) {
 	datagedung := Near(mconn, 103.6037314895799, -1.632582001101999)
 	fmt.Println(datagedung)
 }
+
+func TestFindUser(t *testing.T) {
+	mconn := SetConnectionTest("mongodb+srv://befous:yUft6BXdcZJ647e8@cluster0.sstnspm.mongodb.net/", "philandernews")
+	datagedung := FindUser(mconn, "user", User{Username: "ibrohim"})
+	fmt.Println(datagedung)
+}
