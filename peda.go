@@ -297,50 +297,53 @@ func whatapp(token string, r *http.Request) string {
 	return ReturnStruct(resp)
 }
 
-func Login(token, privatekey, mongoenv, dbname, collname string, r *http.Request) string {
+func Login(privatekey, mongoenv, dbname, collname string, r *http.Request) string {
 	var response CredentialUser
 
-	var resp atmessage.Response
+	header := r.Header.Get("token")
 
 	response.Status = false
 	mconn := SetConnection(mongoenv, "befous")
 	var datauser User
 	err := json.NewDecoder(r.Body).Decode(&datauser)
-	if err != nil {
-		response.Message = "error parsing application/json: " + err.Error()
+	if header == "" {
+		response.Message = "header tidak ditemukan"
 	} else {
-		if usernameExists(mongoenv, dbname, datauser) {
-			if IsPasswordValid(mconn, collname, datauser) {
-				user := FindUser(mconn, collname, datauser)
-				tokenstring, err := watoken.Encode(datauser.Username, os.Getenv(privatekey))
-				dt := &wa.TextMessage{
-					To:       user.Phone_number,
-					IsGroup:  false,
-					Messages: "Selamat datang " + user.Name,
-				}
-				if err != nil {
-					return ReturnStruct(response.Message == "gagal encode token :"+err.Error())
-				} else {
-					response.Status = true
-					response.Data.Name = user.Name
-					response.Data.Email = user.Email
-					response.Data.Username = user.Username
-					response.Data.Role = user.Role
-					response.Message = "selamat anda berhasil login"
-					response.Token = tokenstring
+		if err != nil {
+			response.Message = "error parsing application/json: " + err.Error()
+		} else {
+			if usernameExists(mongoenv, dbname, datauser) {
+				if IsPasswordValid(mconn, collname, datauser) {
+					user := FindUser(mconn, collname, datauser)
+					tokenstring, err := watoken.Encode(datauser.Username, os.Getenv(privatekey))
+					dt := &wa.TextMessage{
+						To:       user.No_whatsapp,
+						IsGroup:  false,
+						Messages: "Selamat datang " + user.Name,
+					}
+					if err != nil {
+						return ReturnStruct(response.Message == "gagal encode token :"+err.Error())
+					} else {
+						response.Status = true
+						response.Data.Name = user.Name
+						response.Data.Email = user.Email
+						response.Data.Username = user.Username
+						response.Data.Role = user.Role
+						response.Message = "selamat anda berhasil login"
+						response.Token = tokenstring
 
-					atapi.PostStructWithToken[atmessage.Response]("Token", r.Header.Get("token"), dt, "https://api.wa.my.id/api/send/message/text")
-					response.Message = resp.Response
-					return ReturnStruct(response)
+						atapi.PostStructWithToken[atmessage.Response]("Token", r.Header.Get("token"), dt, "https://api.wa.my.id/api/send/message/text")
+					}
+				} else {
+					response.Message = "password salah"
 				}
 			} else {
-				response.Message = "password salah"
+				response.Message = "akun tidak ditemukan"
 			}
-		} else {
-			response.Message = "akun tidak ditemukan"
-		}
 
+		}
 	}
+
 	return ReturnStruct(response)
 }
 
