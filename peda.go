@@ -298,6 +298,7 @@ func whatapp(token string, r *http.Request) string {
 }
 
 func Login(privatekey, mongoenv, dbname, collname string, r *http.Request) string {
+	var resp atmessage.Response
 	var response CredentialUser
 	response.Status = false
 	mconn := SetConnection(mongoenv, dbname)
@@ -317,8 +318,16 @@ func Login(privatekey, mongoenv, dbname, collname string, r *http.Request) strin
 				response.Data.Email = user.Email
 				response.Data.Username = user.Username
 				response.Data.Role = user.Role
-				response.Message = "User berhasil login"
 				response.Token = tokenstring
+
+				dt := &wa.TextMessage{
+					To:       user.No_whatsapp,
+					IsGroup:  false,
+					Messages: user.Name + "berhasil login",
+				}
+
+				resp, _ = atapi.PostStructWithToken[atmessage.Response]("Token", r.Header.Get("token"), dt, "https://api.wa.my.id/api/send/message/text")
+				response.Message = resp.Response
 				return ReturnStruct(response)
 			}
 		} else {
