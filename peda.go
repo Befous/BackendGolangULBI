@@ -7,7 +7,6 @@ import (
 
 	"github.com/aiteung/atapi"
 	"github.com/aiteung/atmessage"
-	"github.com/aiteung/module/model"
 	"github.com/whatsauth/wa"
 	"github.com/whatsauth/watoken"
 )
@@ -286,10 +285,21 @@ func Registrasi(mongoenv, dbname, collname string, r *http.Request) string {
 	return ReturnStruct(response)
 }
 
-func Login(privatekey, mongoenv, dbname, collname string, r *http.Request) string {
+func whatapp(token string, r *http.Request) string {
+	var resp atmessage.Response
+
+	dt := &wa.TextMessage{
+		To:       "6281271720763",
+		IsGroup:  false,
+		Messages: "Selamat datang ",
+	}
+	resp, _ = atapi.PostStructWithToken[atmessage.Response]("Token", os.Getenv(token), dt, "https://api.wa.my.id/api/send/message/text")
+	return ReturnStruct(resp)
+}
+
+func Login(token, privatekey, mongoenv, dbname, collname string, r *http.Request) string {
 	var response CredentialUser
 
-	var msg model.IteungMessage
 	var resp atmessage.Response
 
 	response.Status = false
@@ -314,11 +324,11 @@ func Login(privatekey, mongoenv, dbname, collname string, r *http.Request) strin
 
 					response.Token = tokenstring
 					dt := &wa.TextMessage{
-						To:       msg.Phone_number,
+						To:       "6281271720763",
 						IsGroup:  false,
-						Messages: "Hai " + user.Name,
+						Messages: "Selamat datang " + user.Name,
 					}
-					resp, _ = atapi.PostStructWithToken[atmessage.Response]("Token", os.Getenv("token"), dt, "https://api.wa.my.id/api/send/message/text")
+					resp, _ = atapi.PostStructWithToken[atmessage.Response]("Token", os.Getenv(token), dt, "https://api.wa.my.id/api/send/message/text")
 					response.Message = resp.Response
 					return ReturnStruct(response)
 				}
