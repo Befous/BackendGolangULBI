@@ -98,7 +98,7 @@ type User struct {
 	Username     string    `json:"username" bson:"username"`
 	Password     string    `json:"password" bson:"password"`
 	Role         SemuaRole `json:"role,omitempty" bson:"role,omitempty"`
-	Phone_number string    `json:"phone_number,omitempty" bson:"phone_number,omitempty"`
+	Nomor_dituju string    `json:"nomor_dituju,omitempty" bson:"nomor_dituju,omitempty"`
 }
 
 type SemuaRole struct {
