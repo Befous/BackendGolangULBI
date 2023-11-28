@@ -298,7 +298,6 @@ func whatapp(token string, r *http.Request) string {
 }
 
 func Login(privatekey, mongoenv, dbname, collname string, r *http.Request) string {
-	var resp atmessage.Response
 	var response CredentialUser
 	response.Status = false
 	mconn := SetConnection(mongoenv, dbname)
@@ -309,25 +308,27 @@ func Login(privatekey, mongoenv, dbname, collname string, r *http.Request) strin
 	} else {
 		if IsPasswordValid(mconn, collname, datauser) {
 			user := FindUser(mconn, collname, datauser)
+			var nama = user.Name
 			tokenstring, err := watoken.Encode(datauser.Username, os.Getenv(privatekey))
 			if err != nil {
 				return ReturnStruct(response.Message == "Gagal Encode Token :"+err.Error())
 			} else {
 				response.Status = true
-				response.Data.Name = user.Name
+				response.Data.Name = nama
 				response.Data.Email = user.Email
 				response.Data.Username = user.Username
 				response.Data.Role = user.Role
 				response.Token = tokenstring
+				response.Message = "berhasil login"
 
 				dt := &wa.TextMessage{
-					To:       user.No_whatsapp,
+					To:       "6281271720763",
 					IsGroup:  false,
-					Messages: user.Name + "berhasil login",
+					Messages: nama + "berhasil login",
 				}
 
-				resp, _ = atapi.PostStructWithToken[atmessage.Response]("Token", r.Header.Get("token"), dt, "https://api.wa.my.id/api/send/message/text")
-				response.Message = resp.Response
+				atapi.PostStructWithToken[atmessage.Response]("Token", r.Header.Get("token"), dt, "https://api.wa.my.id/api/send/message/text")
+
 				return ReturnStruct(response)
 			}
 		} else {
