@@ -5,6 +5,10 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/aiteung/atapi"
+	"github.com/aiteung/atmessage"
+	"github.com/aiteung/module/model"
+	"github.com/whatsauth/wa"
 	"github.com/whatsauth/watoken"
 )
 
@@ -284,8 +288,12 @@ func Registrasi(mongoenv, dbname, collname string, r *http.Request) string {
 
 func Login(privatekey, mongoenv, dbname, collname string, r *http.Request) string {
 	var response CredentialUser
+
+	var msg model.IteungMessage
+	var resp atmessage.Response
+
 	response.Status = false
-	mconn := SetConnection(mongoenv, dbname)
+	mconn := SetConnection(mongoenv, "befous")
 	var datauser User
 	err := json.NewDecoder(r.Body).Decode(&datauser)
 	if err != nil {
@@ -303,8 +311,15 @@ func Login(privatekey, mongoenv, dbname, collname string, r *http.Request) strin
 					response.Data.Email = user.Email
 					response.Data.Username = user.Username
 					response.Data.Role = user.Role
-					response.Message = "user berhasil login"
+
 					response.Token = tokenstring
+					dt := &wa.TextMessage{
+						To:       msg.Phone_number,
+						IsGroup:  false,
+						Messages: "Hai " + user.Name,
+					}
+					resp, _ = atapi.PostStructWithToken[atmessage.Response]("Token", os.Getenv("token"), dt, "https://api.wa.my.id/api/send/message/text")
+					response.Message = resp.Response
 					return ReturnStruct(response)
 				}
 			} else {
