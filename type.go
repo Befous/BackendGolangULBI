@@ -93,12 +93,12 @@ type Jadwal struct {
 }
 
 type User struct {
-	Name         string    `json:"name,omitempty" bson:"name,omitempty"`
-	Email        string    `json:"email,omitempty" bson:"email,omitempty"`
-	Username     string    `json:"username" bson:"username"`
-	Password     string    `json:"password" bson:"password"`
-	Role         SemuaRole `json:"role,omitempty" bson:"role,omitempty"`
-	Nomor_dituju string    `json:"nomor_dituju,omitempty" bson:"nomor_dituju,omitempty"`
+	Name     string    `json:"name,omitempty" bson:"name,omitempty"`
+	Email    string    `json:"email,omitempty" bson:"email,omitempty"`
+	Username string    `json:"username" bson:"username"`
+	Password string    `json:"password" bson:"password"`
+	Role     SemuaRole `json:"role,omitempty" bson:"role,omitempty"`
+	Nomor_hp string    `json:"nomor_hp,omitempty" bson:"nomor_hp,omitempty"`
 }
 
 type SemuaRole struct {
