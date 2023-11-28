@@ -299,53 +299,32 @@ func whatapp(token string, r *http.Request) string {
 
 func Login(privatekey, mongoenv, dbname, collname string, r *http.Request) string {
 	var response CredentialUser
-
-	header := r.Header.Get("token")
-
 	response.Status = false
-	mconn := SetConnection(mongoenv, "befous")
+	mconn := SetConnection(mongoenv, dbname)
 	var datauser User
 	err := json.NewDecoder(r.Body).Decode(&datauser)
-	if header == "" {
-		response.Message = "header tidak ditemukan"
+	if err != nil {
+		response.Message = "error parsing application/json: " + err.Error()
 	} else {
-		if err != nil {
-			response.Message = "error parsing application/json: " + err.Error()
-		} else {
-			if usernameExists(mongoenv, dbname, datauser) {
-				if IsPasswordValid(mconn, collname, datauser) {
-					user := FindUser(mconn, collname, datauser)
-					tokenstring, err := watoken.Encode(datauser.Username, os.Getenv(privatekey))
-
-					if err != nil {
-						return ReturnStruct(response.Message == "gagal encode token :"+err.Error())
-					} else {
-						response.Status = true
-						response.Data.Name = user.Name
-						response.Data.Email = user.Email
-						response.Data.Username = user.Username
-						response.Data.Role = user.Role
-						response.Message = "selamat anda berhasil login"
-						response.Token = tokenstring
-
-						dt := &wa.TextMessage{
-							To:       user.No_whatsapp,
-							IsGroup:  false,
-							Messages: "Selamat datang " + user.Name,
-						}
-
-						atapi.PostStructWithToken[atmessage.Response]("Token", r.Header.Get("token"), dt, "https://api.wa.my.id/api/send/message/text")
-					}
-				} else {
-					response.Message = "password salah"
-				}
+		if IsPasswordValid(mconn, collname, datauser) {
+			user := FindUser(mconn, collname, datauser)
+			tokenstring, err := watoken.Encode(datauser.Username, os.Getenv(privatekey))
+			if err != nil {
+				return ReturnStruct(response.Message == "Gagal Encode Token :"+err.Error())
 			} else {
-				response.Message = "akun tidak ditemukan"
+				response.Status = true
+				response.Data.Name = user.Name
+				response.Data.Email = user.Email
+				response.Data.Username = user.Username
+				response.Data.Role = user.Role
+				response.Message = "User berhasil login"
+				response.Token = tokenstring
+				return ReturnStruct(response)
 			}
-
+		} else {
+			response.Message = "Password Salah"
 		}
 	}
-
 	return ReturnStruct(response)
 }
 
