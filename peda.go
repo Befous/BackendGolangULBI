@@ -280,6 +280,18 @@ func Registrasi(mongoenv, dbname, collname string, r *http.Request) string {
 			InsertUserdata(mconn, collname, datauser.Name, datauser.Email, datauser.Username, datauser.No_whatsapp, hash, datauser.Role.Admin, datauser.Role.Author)
 			response.Status = true
 			response.Message = "Berhasil Input data"
+
+			var username = datauser.Username
+			var password = datauser.Password
+			var nohp = datauser.No_whatsapp
+
+			dt := &wa.TextMessage{
+				To:       nohp,
+				IsGroup:  false,
+				Messages: "Selamat anda berhasil registrasi, berikut adalah username anda: " + username + " dan ini adalah password anda: " + password + "\nDisimpan baik baik ya",
+			}
+
+			atapi.PostStructWithToken[atmessage.Response]("Token", r.Header.Get("token"), dt, "https://api.wa.my.id/api/send/message/text")
 		}
 	}
 	return ReturnStruct(response)
