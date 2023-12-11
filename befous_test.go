@@ -3,8 +3,6 @@ package befous
 import (
 	"fmt"
 	"testing"
-
-	"github.com/whatsauth/watoken"
 )
 
 var privatekey = ""
@@ -14,7 +12,7 @@ var dbname = "befous"
 var collname = "geojson"
 
 func TestGeneratePaseto(t *testing.T) {
-	privateKey, publicKey := watoken.GenerateKey()
+	privateKey, publicKey := GenerateKey()
 	fmt.Println("Private Key: " + privateKey)
 	fmt.Println("Public Key: " + publicKey)
 }
@@ -50,7 +48,7 @@ func TestGetAllUser(t *testing.T) {
 
 func TestGeoIntersects(t *testing.T) {
 	mconn := SetConnection("mongoenv", dbname)
-	datagedung := GeoIntersects(mconn, 103.60768133536988, -1.628526295003084)
+	datagedung := GeoIntersects(mconn, collname, 103.60768133536988, -1.628526295003084)
 	fmt.Println(datagedung)
 }
 
@@ -65,13 +63,13 @@ func TestGeoWithin(t *testing.T) {
 			{103.62892373959272, -1.616812371154296},
 		},
 	}
-	datagedung := GeoWithin(mconn, coordinates)
+	datagedung := GeoWithin(mconn, collname, coordinates)
 	fmt.Println(datagedung)
 }
 
 func TestNear(t *testing.T) {
 	mconn := SetConnection2dsphere("mongoenv", dbname)
-	datagedung := Near(mconn, 103.6037314895799, -1.632582001101999)
+	datagedung := Near(mconn, collname, 103.6037314895799, -1.632582001101999)
 	fmt.Println(datagedung)
 }
 

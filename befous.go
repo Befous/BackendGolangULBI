@@ -434,7 +434,7 @@ func AmbilDataGeojson(publickey, mongoenv, dbname, collname string, r *http.Requ
 	return ReturnStruct(datagedung)
 }
 
-func PostGeoIntersects(mongoenv, dbname string, r *http.Request) string {
+func PostGeoIntersects(mongoenv, dbname, collname string, r *http.Request) string {
 	var longlat LongLat
 	var response Pesan
 	response.Status = false
@@ -445,12 +445,12 @@ func PostGeoIntersects(mongoenv, dbname string, r *http.Request) string {
 		response.Message = "error parsing application/json: " + err.Error()
 	} else {
 		response.Status = true
-		response.Message = GeoIntersects(mconn, longlat.Longitude, longlat.Latitude)
+		response.Message = GeoIntersects(mconn, collname, longlat.Longitude, longlat.Latitude)
 	}
 	return ReturnStruct(response)
 }
 
-func PostGeoWithin(mongoenv, dbname string, r *http.Request) string {
+func PostGeoWithin(mongoenv, dbname, collname string, r *http.Request) string {
 	var coordinate GeoJsonPolygon
 	var response Pesan
 	response.Status = false
@@ -461,12 +461,12 @@ func PostGeoWithin(mongoenv, dbname string, r *http.Request) string {
 		response.Message = "error parsing application/json: " + err.Error()
 	} else {
 		response.Status = true
-		response.Message = GeoWithin(mconn, coordinate.Geometry.Coordinates)
+		response.Message = GeoWithin(mconn, collname, coordinate.Geometry.Coordinates)
 	}
 	return ReturnStruct(response)
 }
 
-func PostNear(mongoenv, dbname string, r *http.Request) string {
+func PostNear(mongoenv, dbname, collname string, r *http.Request) string {
 	var longlat LongLat
 	var response Pesan
 	response.Status = false
@@ -477,7 +477,7 @@ func PostNear(mongoenv, dbname string, r *http.Request) string {
 		response.Message = "error parsing application/json: " + err.Error()
 	} else {
 		response.Status = true
-		response.Message = Near(mconn, longlat.Longitude, longlat.Latitude)
+		response.Message = Near(mconn, collname, longlat.Longitude, longlat.Latitude)
 	}
 	return ReturnStruct(response)
 }
