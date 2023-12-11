@@ -124,14 +124,14 @@ func DeleteGeojson(mongoenv *mongo.Database, collname string, userdata User) int
 	return atdb.DeleteOneDoc(mongoenv, collname, filter)
 }
 
-func GeoIntersects(mongoconn *mongo.Database, collname string, long float64, lat float64) (namalokasi string) {
+func GeoIntersects(mongoconn *mongo.Database, collname string, coordinates Point) (namalokasi string) {
 	lokasicollection := mongoconn.Collection(collname)
 	filter := bson.M{
 		"geometry": bson.M{
 			"$geoIntersects": bson.M{
 				"$geometry": bson.M{
 					"type":        "Point",
-					"coordinates": []float64{long, lat},
+					"coordinates": coordinates.Coordinates,
 				},
 			},
 		},
@@ -145,14 +145,14 @@ func GeoIntersects(mongoconn *mongo.Database, collname string, long float64, lat
 
 }
 
-func GeoWithin(mongoconn *mongo.Database, collname string, coordinates [][][]float64) (namalokasi string) {
+func GeoWithin(mongoconn *mongo.Database, collname string, coordinates Polygon) (namalokasi string) {
 	lokasicollection := mongoconn.Collection(collname)
 	filter := bson.M{
 		"geometry": bson.M{
 			"$geoWithin": bson.M{
 				"$geometry": bson.M{
 					"type":        "Polygon",
-					"coordinates": coordinates,
+					"coordinates": coordinates.Coordinates,
 				},
 			},
 		},
@@ -166,14 +166,14 @@ func GeoWithin(mongoconn *mongo.Database, collname string, coordinates [][][]flo
 
 }
 
-func Near(mongoconn *mongo.Database, collname string, long float64, lat float64) (namalokasi string) {
+func Near(mongoconn *mongo.Database, collname string, coordinates Point) (namalokasi string) {
 	lokasicollection := mongoconn.Collection(collname)
 	filter := bson.M{
 		"geometry": bson.M{
 			"$near": bson.M{
 				"$geometry": bson.M{
 					"type":        "LineString",
-					"coordinates": []float64{long, lat},
+					"coordinates": coordinates.Coordinates,
 				},
 				"$maxDistance": 1000,
 			},

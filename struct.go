@@ -16,7 +16,6 @@ type Payload struct {
 }
 
 type User struct {
-	ID       string `json:"id,omitempty" bson:"id,omitempty"`
 	Name     string `json:"name" bson:"name"`
 	Username string `json:"username" bson:"username"`
 	Password string `json:"password" bson:"password"`
@@ -87,6 +86,18 @@ type GeoJsonPolygon struct {
 		Coordinates [][][]float64 `json:"coordinates" bson:"coordinates"`
 		Type        string        `json:"type,omitempty" bson:"type,omitempty"`
 	} `json:"geometry" bson:"geometry"`
+}
+
+type Point struct {
+	Coordinates []float64 `json:"coordinates" bson:"coordinates"`
+}
+
+type Polyline struct {
+	Coordinates [][]float64 `json:"coordinates" bson:"coordinates"`
+}
+
+type Polygon struct {
+	Coordinates [][][]float64 `json:"coordinates" bson:"coordinates"`
 }
 
 type LongLat struct {

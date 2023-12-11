@@ -172,6 +172,8 @@ func AmbilSemuaUser(publickey, mongoenv, dbname, collname string, r *http.Reques
 	}
 
 	datauser := GetAllUser(mconn, collname)
+	response.Status = true
+	response.Message = "Berhasil mengambil data"
 	response.Data = datauser
 	return ReturnStruct(response)
 }
@@ -335,6 +337,7 @@ func MembuatGeojsonPoint(publickey, mongoenv, dbname, collname string, r *http.R
 	}
 
 	PostPoint(mconn, collname, geojsonpoint)
+	response.Status = true
 	response.Message = "Data point berhasil masuk"
 
 	return ReturnStruct(response)
@@ -379,6 +382,7 @@ func MembuatGeojsonPolyline(publickey, mongoenv, dbname, collname string, r *htt
 	}
 
 	PostLinestring(mconn, collname, geojsonpolyline)
+	response.Status = true
 	response.Message = "Data polyline berhasil masuk"
 
 	return ReturnStruct(response)
@@ -423,62 +427,149 @@ func MembuatGeojsonPolygon(publickey, mongoenv, dbname, collname string, r *http
 	}
 
 	PostPolygon(mconn, collname, geojsonpolygon)
+	response.Status = true
 	response.Message = "Data polygon berhasil masuk"
 
 	return ReturnStruct(response)
 }
 
-func AmbilDataGeojson(publickey, mongoenv, dbname, collname string, r *http.Request) string {
+func AmbilDataGeojson(mongoenv, dbname, collname string, r *http.Request) string {
 	mconn := SetConnection(mongoenv, dbname)
 	datagedung := GetAllBangunan(mconn, collname)
 	return ReturnStruct(datagedung)
 }
 
-func PostGeoIntersects(mongoenv, dbname, collname string, r *http.Request) string {
-	var longlat LongLat
-	var response Pesan
-	response.Status = false
-	mconn := SetConnection(mongoenv, dbname)
-
-	err := json.NewDecoder(r.Body).Decode(&longlat)
-	if err != nil {
-		response.Message = "error parsing application/json: " + err.Error()
-	} else {
-		response.Status = true
-		response.Message = GeoIntersects(mconn, collname, longlat.Longitude, longlat.Latitude)
-	}
-	return ReturnStruct(response)
-}
-
-func PostGeoWithin(mongoenv, dbname, collname string, r *http.Request) string {
-	var coordinate GeoJsonPolygon
+func PostGeoIntersects(publickey, mongoenv, dbname, collname string, r *http.Request) string {
+	var coordinate Point
 	var response Pesan
 	response.Status = false
 	mconn := SetConnection(mongoenv, dbname)
 
 	err := json.NewDecoder(r.Body).Decode(&coordinate)
+
 	if err != nil {
-		response.Message = "error parsing application/json: " + err.Error()
-	} else {
-		response.Status = true
-		response.Message = GeoWithin(mconn, collname, coordinate.Geometry.Coordinates)
+		response.Message = "Error parsing application/json: " + err.Error()
+		return ReturnStruct(response)
 	}
+
+	header := r.Header.Get("token")
+	if header == "" {
+		response.Message = "Header login tidak ditemukan"
+		return ReturnStruct(response)
+	}
+
+	tokenusername := DecodeGetUsername(os.Getenv(publickey), header)
+	tokenrole := DecodeGetRole(os.Getenv(publickey), header)
+
+	if tokenusername == "" || tokenrole == "" {
+		response.Message = "Hasil decode tidak ditemukan"
+		return ReturnStruct(response)
+	}
+
+	if !usernameExists(mongoenv, dbname, User{Username: tokenusername}) {
+		response.Message = "Akun tidak ditemukan"
+		return ReturnStruct(response)
+	}
+
+	if tokenrole != "owner" {
+		if tokenrole != "dosen" {
+			response.Message = "Anda tidak memiliki akses"
+			return ReturnStruct(response)
+		}
+	}
+
+	response.Status = true
+	response.Message = GeoIntersects(mconn, collname, coordinate)
 	return ReturnStruct(response)
 }
 
-func PostNear(mongoenv, dbname, collname string, r *http.Request) string {
-	var longlat LongLat
+func PostGeoWithin(publickey, mongoenv, dbname, collname string, r *http.Request) string {
+	var coordinate Polygon
+	var response Pesan
+	response.Status = false
+	mconn := SetConnection(mongoenv, dbname)
+
+	err := json.NewDecoder(r.Body).Decode(&coordinate)
+
+	if err != nil {
+		response.Message = "Error parsing application/json: " + err.Error()
+		return ReturnStruct(response)
+	}
+
+	header := r.Header.Get("token")
+	if header == "" {
+		response.Message = "Header login tidak ditemukan"
+		return ReturnStruct(response)
+	}
+
+	tokenusername := DecodeGetUsername(os.Getenv(publickey), header)
+	tokenrole := DecodeGetRole(os.Getenv(publickey), header)
+
+	if tokenusername == "" || tokenrole == "" {
+		response.Message = "Hasil decode tidak ditemukan"
+		return ReturnStruct(response)
+	}
+
+	if !usernameExists(mongoenv, dbname, User{Username: tokenusername}) {
+		response.Message = "Akun tidak ditemukan"
+		return ReturnStruct(response)
+	}
+
+	if tokenrole != "owner" {
+		if tokenrole != "dosen" {
+			response.Message = "Anda tidak memiliki akses"
+			return ReturnStruct(response)
+		}
+	}
+
+	response.Status = true
+	response.Message = GeoWithin(mconn, collname, coordinate)
+
+	return ReturnStruct(response)
+}
+
+func PostNear(publickey, mongoenv, dbname, collname string, r *http.Request) string {
+	var coordinate Point
 	var response Pesan
 	response.Status = false
 	mconn := SetConnection2dsphere(mongoenv, dbname)
 
-	err := json.NewDecoder(r.Body).Decode(&longlat)
+	err := json.NewDecoder(r.Body).Decode(&coordinate)
+
 	if err != nil {
-		response.Message = "error parsing application/json: " + err.Error()
-	} else {
-		response.Status = true
-		response.Message = Near(mconn, collname, longlat.Longitude, longlat.Latitude)
+		response.Message = "Error parsing application/json: " + err.Error()
+		return ReturnStruct(response)
 	}
+
+	header := r.Header.Get("token")
+	if header == "" {
+		response.Message = "Header login tidak ditemukan"
+		return ReturnStruct(response)
+	}
+
+	tokenusername := DecodeGetUsername(os.Getenv(publickey), header)
+	tokenrole := DecodeGetRole(os.Getenv(publickey), header)
+
+	if tokenusername == "" || tokenrole == "" {
+		response.Message = "Hasil decode tidak ditemukan"
+		return ReturnStruct(response)
+	}
+
+	if !usernameExists(mongoenv, dbname, User{Username: tokenusername}) {
+		response.Message = "Akun tidak ditemukan"
+		return ReturnStruct(response)
+	}
+
+	if tokenrole != "owner" {
+		if tokenrole != "dosen" {
+			response.Message = "Anda tidak memiliki akses"
+			return ReturnStruct(response)
+		}
+	}
+
+	response.Status = true
+	response.Message = Near(mconn, collname, coordinate)
+
 	return ReturnStruct(response)
 }
 

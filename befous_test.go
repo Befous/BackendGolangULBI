@@ -2,6 +2,7 @@ package befous
 
 import (
 	"fmt"
+	"os"
 	"testing"
 )
 
@@ -9,7 +10,7 @@ var privatekey = ""
 var publickey = ""
 var encode = ""
 var dbname = "befous"
-var collname = "geojson"
+var collname = "user"
 
 func TestGeneratePaseto(t *testing.T) {
 	privateKey, publicKey := GenerateKey()
@@ -48,19 +49,26 @@ func TestGetAllUser(t *testing.T) {
 
 func TestGeoIntersects(t *testing.T) {
 	mconn := SetConnection("mongoenv", dbname)
-	datagedung := GeoIntersects(mconn, collname, 103.60768133536988, -1.628526295003084)
+	coordinates := Point{
+		Coordinates: []float64{
+			103.60768133536988, -1.628526295003084,
+		},
+	}
+	datagedung := GeoIntersects(mconn, collname, coordinates)
 	fmt.Println(datagedung)
 }
 
 func TestGeoWithin(t *testing.T) {
 	mconn := SetConnection("mongoenv", dbname)
-	coordinates := [][][]float64{
-		{
-			{103.62892373959272, -1.616812371154296},
-			{103.62890068598779, -1.616866839799556},
-			{103.62896041578165, -1.616890931699615},
-			{103.62898556516905, -1.6168364630550514},
-			{103.62892373959272, -1.616812371154296},
+	coordinates := Polygon{
+		Coordinates: [][][]float64{
+			{
+				{103.62892373959272, -1.616812371154296},
+				{103.62890068598779, -1.616866839799556},
+				{103.62896041578165, -1.616890931699615},
+				{103.62898556516905, -1.6168364630550514},
+				{103.62892373959272, -1.616812371154296},
+			},
 		},
 	}
 	datagedung := GeoWithin(mconn, collname, coordinates)
@@ -69,14 +77,23 @@ func TestGeoWithin(t *testing.T) {
 
 func TestNear(t *testing.T) {
 	mconn := SetConnection2dsphere("mongoenv", dbname)
-	datagedung := Near(mconn, collname, 103.6037314895799, -1.632582001101999)
+	coordinates := Point{
+		Coordinates: []float64{
+			103.6037314895799, -1.632582001101999,
+		},
+	}
+	datagedung := Near(mconn, collname, coordinates)
 	fmt.Println(datagedung)
 }
 
 func TestFindUser(t *testing.T) {
 	mconn := SetConnection("mongoenv", dbname)
 	datagedung := FindUser(mconn, collname, User{Username: "ibrohim"})
-	fmt.Println(datagedung)
+	tokenstring, tokenerr := Encode(datagedung.Name, datagedung.Username, datagedung.Role, os.Getenv("privatekey"))
+	if tokenerr != nil {
+		fmt.Println("Gagal encode token: " + tokenerr.Error())
+	}
+	fmt.Println(tokenstring)
 }
 
 func TestGetAllBangunan(t *testing.T) {
