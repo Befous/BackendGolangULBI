@@ -1,4 +1,4 @@
-package peda
+package befous
 
 import (
 	"context"
@@ -9,6 +9,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
+
+// ------------------------------------------------------------------ Set Connection ------------------------------------------------------------------
 
 func SetConnection(mongoenv, dbname string) *mongo.Database {
 	var DBmongoinfo = atdb.DBInfo{
@@ -40,144 +42,12 @@ func SetConnection2dsphere(mongoenv, dbname string) *mongo.Database {
 	return db
 }
 
-func SetConnectionTest(mongostring, dbname string) *mongo.Database {
-	var DBmongoinfo = atdb.DBInfo{
-		DBString: mongostring,
-		DBName:   dbname,
-	}
-	return atdb.MongoConnect(DBmongoinfo)
-}
-
-func SetConnectionTest2dsphere(mongostring, dbname string) *mongo.Database {
-	var DBmongoinfo = atdb.DBInfo{
-		DBString: mongostring,
-		DBName:   dbname,
-	}
-	db := atdb.MongoConnect(DBmongoinfo)
-
-	// Create a geospatial index if it doesn't exist
-	indexModel := mongo.IndexModel{
-		Keys: bson.D{
-			{Key: "geometry", Value: "2dsphere"},
-		},
-	}
-
-	_, err := db.Collection("geojson").Indexes().CreateOne(context.TODO(), indexModel)
-	if err != nil {
-		log.Printf("Error creating geospatial index: %v\n", err)
-	}
-
-	return db
-}
-
-func GetAllBangunanLineString(mongoenv *mongo.Database, collname string) []GeoJson {
-	lokasi := atdb.GetAllDoc[[]GeoJson](mongoenv, collname)
-	return lokasi
-}
-
-func PostPoint(mongoconn *mongo.Database, collection string, pointdata GeoJsonPoint) interface{} {
-	return atdb.InsertOneDoc(mongoconn, collection, pointdata)
-}
-
-func PostLinestring(mongoconn *mongo.Database, collection string, linestringdata GeoJsonLineString) interface{} {
-	return atdb.InsertOneDoc(mongoconn, collection, linestringdata)
-}
-
-func PostPolygon(mongoconn *mongo.Database, collection string, polygondata GeoJsonPolygon) interface{} {
-	return atdb.InsertOneDoc(mongoconn, collection, polygondata)
-}
-
-func MemasukkanKoordinat(MongoConn *mongo.Database, colname string, coordinate []float64, name, volume, tipe string) (InsertedID interface{}) {
-	req := new(Coordinate)
-	req.Type = tipe
-	req.Coordinates = coordinate
-	req.Name = name
-
-	ins := atdb.InsertOneDoc(MongoConn, colname, req)
-	return ins
-}
-
-func GeoIntersects(mongoconn *mongo.Database, long float64, lat float64) (namalokasi string) {
-	lokasicollection := mongoconn.Collection("geojson")
-	filter := bson.M{
-		"geometry": bson.M{
-			"$geoIntersects": bson.M{
-				"$geometry": bson.M{
-					"type":        "Point",
-					"coordinates": []float64{long, lat},
-				},
-			},
-		},
-	}
-	var lokasi Lokasi
-	err := lokasicollection.FindOne(context.TODO(), filter).Decode(&lokasi)
-	if err != nil {
-		log.Printf("GeoIntersects: %v\n", err)
-	}
-	return lokasi.Properties.Name
-
-}
-
-func GeoWithin(mongoconn *mongo.Database, coordinates [][][]float64) (namalokasi string) {
-	lokasicollection := mongoconn.Collection("geojson")
-	filter := bson.M{
-		"geometry": bson.M{
-			"$geoWithin": bson.M{
-				"$geometry": bson.M{
-					"type":        "Polygon",
-					"coordinates": coordinates,
-				},
-			},
-		},
-	}
-	var lokasi Lokasi
-	err := lokasicollection.FindOne(context.TODO(), filter).Decode(&lokasi)
-	if err != nil {
-		log.Printf("GeoWithin: %v\n", err)
-	}
-	return lokasi.Properties.Name
-
-}
-
-func Near(mongoconn *mongo.Database, long float64, lat float64) (namalokasi string) {
-	lokasicollection := mongoconn.Collection("geojson")
-	filter := bson.M{
-		"geometry": bson.M{
-			"$near": bson.M{
-				"$geometry": bson.M{
-					"type":        "LineString",
-					"coordinates": []float64{long, lat},
-				},
-				"$maxDistance": 1000,
-			},
-		},
-	}
-	var lokasi Lokasi
-	err := lokasicollection.FindOne(context.TODO(), filter).Decode(&lokasi)
-	if err != nil {
-		log.Printf("Near: %v\n", err)
-	}
-	return lokasi.Properties.Name
-
-}
-
-// --------------------------------------------------------------------- Projek 3 ---------------------------------------------------------------------
-
-// ---------------------------------------------------------------------- User
+// ----------------------------------------------------------------------- User -----------------------------------------------------------------------
 
 // Create
 
-func InsertUserdata(mongoenv *mongo.Database, collname, name, email, username, password, no_whatsapp string, admin, author bool) (InsertedID interface{}) {
-	req := new(User)
-	req.Name = name
-	req.Email = email
-	req.Username = username
-	req.Password = password
-	req.Role.Admin = admin
-	req.Role.Author = author
-	req.Role.User = true
-	req.No_whatsapp = no_whatsapp
-	return atdb.InsertOneDoc(mongoenv, collname, req)
+func InsertUser(mongoenv *mongo.Database, collname string, datauser User) interface{} {
+	return atdb.InsertOneDoc(mongoenv, collname, datauser)
 }
 
 // Read
@@ -210,18 +80,9 @@ func usernameExists(mongoenv, dbname string, userdata User) bool {
 
 // Update
 
-func EditUser(mongoenv *mongo.Database, collname, name, email, username, password string, admin, author, user bool) interface{} {
-
-	req := new(User)
-	req.Name = name
-	req.Email = email
-	req.Username = username
-	req.Password = password
-	req.Role.Admin = admin
-	req.Role.Author = author
-	req.Role.User = user
-	filter := bson.M{"username": username}
-	return atdb.ReplaceOneDoc(mongoenv, collname, filter, req)
+func EditUser(mongoenv *mongo.Database, collname string, datauser User) interface{} {
+	filter := bson.M{"username": datauser.Username}
+	return atdb.ReplaceOneDoc(mongoenv, collname, filter, datauser)
 }
 
 // Delete
@@ -231,47 +92,100 @@ func DeleteUser(mongoenv *mongo.Database, collname string, userdata User) interf
 	return atdb.DeleteOneDoc(mongoenv, collname, filter)
 }
 
-//-------------------------------------------------------------------- Berita
+// ---------------------------------------------------------------------- Geojson ----------------------------------------------------------------------
 
 // Create
 
-func InsertBerita(mongoenv *mongo.Database, collname string, databerita Berita) interface{} {
-	return atdb.InsertOneDoc(mongoenv, collname, databerita)
+func PostPoint(mongoconn *mongo.Database, collection string, pointdata GeoJsonPoint) interface{} {
+	return atdb.InsertOneDoc(mongoconn, collection, pointdata)
+}
+
+func PostLinestring(mongoconn *mongo.Database, collection string, linestringdata GeoJsonLineString) interface{} {
+	return atdb.InsertOneDoc(mongoconn, collection, linestringdata)
+}
+
+func PostPolygon(mongoconn *mongo.Database, collection string, polygondata GeoJsonPolygon) interface{} {
+	return atdb.InsertOneDoc(mongoconn, collection, polygondata)
 }
 
 // Read
 
-func GetAllBerita(mongoenv *mongo.Database, collname string) []Berita {
-	berita := atdb.GetAllDoc[[]Berita](mongoenv, collname)
-	return berita
-}
-
-func FindBerita(mongoenv *mongo.Database, collname string, databerita Berita) Berita {
-	filter := bson.M{"id": databerita.ID}
-	return atdb.GetOneDoc[Berita](mongoenv, collname, filter)
-}
-
-func idBeritaExists(mongoenv, dbname string, databerita Berita) bool {
-	mconn := SetConnection(mongoenv, dbname).Collection("berita")
-	filter := bson.M{"id": databerita.ID}
-
-	var berita Berita
-	err := mconn.FindOne(context.Background(), filter).Decode(&berita)
-	return err == nil
+func GetAllBangunan(mongoenv *mongo.Database, collname string) []GeoJson {
+	lokasi := atdb.GetAllDoc[[]GeoJson](mongoenv, collname)
+	return lokasi
 }
 
 // Update
 
-func EditBerita(mongoenv *mongo.Database, collname string, databerita Berita) interface{} {
-	filter := bson.M{"id": databerita.ID}
-	return atdb.ReplaceOneDoc(mongoenv, collname, filter, databerita)
-}
-
 // Delete
 
-func DeleteBerita(mongoenv *mongo.Database, collname string, databerita Berita) interface{} {
-	filter := bson.M{"id": databerita.ID}
+func DeleteGeojson(mongoenv *mongo.Database, collname string, userdata User) interface{} {
+	filter := bson.M{"username": userdata.Username}
 	return atdb.DeleteOneDoc(mongoenv, collname, filter)
+}
+
+func GeoIntersects(mongoconn *mongo.Database, long float64, lat float64) (namalokasi string) {
+	lokasicollection := mongoconn.Collection("geojson")
+	filter := bson.M{
+		"geometry": bson.M{
+			"$geoIntersects": bson.M{
+				"$geometry": bson.M{
+					"type":        "Point",
+					"coordinates": []float64{long, lat},
+				},
+			},
+		},
+	}
+	var lokasi FullGeoJson
+	err := lokasicollection.FindOne(context.TODO(), filter).Decode(&lokasi)
+	if err != nil {
+		log.Printf("GeoIntersects: %v\n", err)
+	}
+	return lokasi.Properties.Name
+
+}
+
+func GeoWithin(mongoconn *mongo.Database, coordinates [][][]float64) (namalokasi string) {
+	lokasicollection := mongoconn.Collection("geojson")
+	filter := bson.M{
+		"geometry": bson.M{
+			"$geoWithin": bson.M{
+				"$geometry": bson.M{
+					"type":        "Polygon",
+					"coordinates": coordinates,
+				},
+			},
+		},
+	}
+	var lokasi FullGeoJson
+	err := lokasicollection.FindOne(context.TODO(), filter).Decode(&lokasi)
+	if err != nil {
+		log.Printf("GeoWithin: %v\n", err)
+	}
+	return lokasi.Properties.Name
+
+}
+
+func Near(mongoconn *mongo.Database, long float64, lat float64) (namalokasi string) {
+	lokasicollection := mongoconn.Collection("geojson")
+	filter := bson.M{
+		"geometry": bson.M{
+			"$near": bson.M{
+				"$geometry": bson.M{
+					"type":        "LineString",
+					"coordinates": []float64{long, lat},
+				},
+				"$maxDistance": 1000,
+			},
+		},
+	}
+	var lokasi FullGeoJson
+	err := lokasicollection.FindOne(context.TODO(), filter).Decode(&lokasi)
+	if err != nil {
+		log.Printf("Near: %v\n", err)
+	}
+	return lokasi.Properties.Name
+
 }
 
 // -------------------------------------------------------------------- Pemrograman --------------------------------------------------------------------

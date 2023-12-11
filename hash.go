@@ -1,4 +1,4 @@
-package peda
+package befous
 
 import "golang.org/x/crypto/bcrypt"
 
