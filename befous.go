@@ -586,3 +586,107 @@ func AmbilDataJadwal(mongoenv, dbname, collname string) string {
 	datajadwal := GetAllJadwal(mconn, collname)
 	return ReturnStruct(datajadwal)
 }
+
+func TambahMahasiswa(mongoenv, dbname, collname string, r *http.Request) string {
+	var response Pesan
+	response.Status = false
+	mconn := SetConnection(mongoenv, dbname)
+	var mahasiswa Mahasiswa
+	err := json.NewDecoder(r.Body).Decode(&mahasiswa)
+
+	if err != nil {
+		response.Message = "Error parsing application/json: " + err.Error()
+		return ReturnStruct(response)
+	}
+
+	InsertMahasiswa(mconn, collname, mahasiswa)
+	response.Status = true
+	response.Message = "Berhasil input data"
+
+	return ReturnStruct(response)
+}
+
+func AmbilDataMahasiswa(mongoenv, dbname, collname string, r *http.Request) string {
+	mconn := SetConnection(mongoenv, dbname)
+
+	datamahasiswa := GetAllMahasiswa(mconn, collname)
+	return ReturnStruct(datamahasiswa)
+}
+
+func TambahDosen(mongoenv, dbname, collname string, r *http.Request) string {
+	var response Pesan
+	response.Status = false
+	mconn := SetConnection(mongoenv, dbname)
+	var dosen Dosen
+	err := json.NewDecoder(r.Body).Decode(&dosen)
+
+	if err != nil {
+		response.Message = "Error parsing application/json: " + err.Error()
+		return ReturnStruct(response)
+	}
+
+	InsertDosen(mconn, collname, dosen)
+	response.Status = true
+	response.Message = "Berhasil input data"
+
+	return ReturnStruct(response)
+}
+
+func AmbilDataDosen(mongoenv, dbname, collname string, r *http.Request) string {
+	mconn := SetConnection(mongoenv, dbname)
+
+	datadosen := GetAllDosen(mconn, collname)
+	return ReturnStruct(datadosen)
+}
+
+func TambahRuangan(mongoenv, dbname, collname string, r *http.Request) string {
+	var response Pesan
+	response.Status = false
+	mconn := SetConnection(mongoenv, dbname)
+	var ruangan Ruangan
+	err := json.NewDecoder(r.Body).Decode(&ruangan)
+
+	if err != nil {
+		response.Message = "Error parsing application/json: " + err.Error()
+		return ReturnStruct(response)
+	}
+
+	InsertRuangan(mconn, collname, ruangan)
+	response.Status = true
+	response.Message = "Berhasil input data"
+
+	return ReturnStruct(response)
+}
+
+func AmbilDataRuangan(mongoenv, dbname, collname string, r *http.Request) string {
+	mconn := SetConnection(mongoenv, dbname)
+
+	dataruangan := GetAllRuangan(mconn, collname)
+	return ReturnStruct(dataruangan)
+}
+
+func TambahMatakuliah(mongoenv, dbname, collname string, r *http.Request) string {
+	var response Pesan
+	response.Status = false
+	mconn := SetConnection(mongoenv, dbname)
+	var matakuliah Matakuliah
+	err := json.NewDecoder(r.Body).Decode(&matakuliah)
+
+	if err != nil {
+		response.Message = "Error parsing application/json: " + err.Error()
+		return ReturnStruct(response)
+	}
+
+	InsertMatakuliah(mconn, collname, matakuliah)
+	response.Status = true
+	response.Message = "Berhasil input data"
+
+	return ReturnStruct(response)
+}
+
+func AmbilDataMatakuliah(mongoenv, dbname, collname string, r *http.Request) string {
+	mconn := SetConnection(mongoenv, dbname)
+
+	datamatakuliah := GetAllMatakuliah(mconn, collname)
+	return ReturnStruct(datamatakuliah)
+}

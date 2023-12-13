@@ -120,3 +120,27 @@ type Jadwal struct {
 	Hari string `json:"hari" bson:"hari"`
 	Jam  string `json:"jam" bson:"jam"`
 }
+
+type Mahasiswa struct {
+	NPM          string `json:"npm" bson:"npm"`
+	Nama_Lengkap string `json:"nama_lengkap" bson:"nama_lengkap"`
+	Alamat       string `json:"alamat" bson:"alamat"`
+}
+
+type Dosen struct {
+	NIDN       string `json:"nidn" bson:"nidn"`
+	Nama_Dosen string `json:"nama_dosen" bson:"nama_dosen"`
+	Alamat     string `json:"alamat" bson:"alamat"`
+}
+
+type Ruangan struct {
+	Kode_Ruangan string `json:"kode_ruangan" bson:"kode_ruangan"`
+	Nama_Ruangan string `json:"nama_ruangan" bson:"nama_ruangan"`
+	Kapasitas    string `json:"kapasitas" bson:"kapasitas"`
+}
+
+type Matakuliah struct {
+	Kode_Matakuliah string `json:"kode_matakuliah" bson:"kode_matakuliah"`
+	Nama_Matakiliah string `json:"nama_matakuliah" bson:"nama_matakuliah"`
+	SKS             string `json:"sks" bson:"sks"`
+}

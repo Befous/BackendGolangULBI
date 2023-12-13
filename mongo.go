@@ -52,19 +52,19 @@ func InsertUser(mongoenv *mongo.Database, collname string, datauser User) interf
 
 // Read
 
-func GetAllUser(mongoenv *mongo.Database, collname string) []User {
-	user := atdb.GetAllDoc[[]User](mongoenv, collname)
+func GetAllUser(mconn *mongo.Database, collname string) []User {
+	user := atdb.GetAllDoc[[]User](mconn, collname)
 	return user
 }
 
-func FindUser(mongoenv *mongo.Database, collname string, userdata User) User {
+func FindUser(mconn *mongo.Database, collname string, userdata User) User {
 	filter := bson.M{"username": userdata.Username}
-	return atdb.GetOneDoc[User](mongoenv, collname, filter)
+	return atdb.GetOneDoc[User](mconn, collname, filter)
 }
 
-func IsPasswordValid(mongoenv *mongo.Database, collname string, userdata User) bool {
+func IsPasswordValid(mconn *mongo.Database, collname string, userdata User) bool {
 	filter := bson.M{"username": userdata.Username}
-	res := atdb.GetOneDoc[User](mongoenv, collname, filter)
+	res := atdb.GetOneDoc[User](mconn, collname, filter)
 	hashChecker := CheckPasswordHash(userdata.Password, res.Password)
 	return hashChecker
 }
@@ -80,38 +80,38 @@ func usernameExists(mongoenv, dbname string, userdata User) bool {
 
 // Update
 
-func EditUser(mongoenv *mongo.Database, collname string, datauser User) interface{} {
+func EditUser(mconn *mongo.Database, collname string, datauser User) interface{} {
 	filter := bson.M{"username": datauser.Username}
-	return atdb.ReplaceOneDoc(mongoenv, collname, filter, datauser)
+	return atdb.ReplaceOneDoc(mconn, collname, filter, datauser)
 }
 
 // Delete
 
-func DeleteUser(mongoenv *mongo.Database, collname string, userdata User) interface{} {
+func DeleteUser(mconn *mongo.Database, collname string, userdata User) interface{} {
 	filter := bson.M{"username": userdata.Username}
-	return atdb.DeleteOneDoc(mongoenv, collname, filter)
+	return atdb.DeleteOneDoc(mconn, collname, filter)
 }
 
 // ---------------------------------------------------------------------- Geojson ----------------------------------------------------------------------
 
 // Create
 
-func PostPoint(mongoconn *mongo.Database, collection string, pointdata GeoJsonPoint) interface{} {
-	return atdb.InsertOneDoc(mongoconn, collection, pointdata)
+func PostPoint(mconn *mongo.Database, collection string, pointdata GeoJsonPoint) interface{} {
+	return atdb.InsertOneDoc(mconn, collection, pointdata)
 }
 
-func PostLinestring(mongoconn *mongo.Database, collection string, linestringdata GeoJsonLineString) interface{} {
-	return atdb.InsertOneDoc(mongoconn, collection, linestringdata)
+func PostLinestring(mconn *mongo.Database, collection string, linestringdata GeoJsonLineString) interface{} {
+	return atdb.InsertOneDoc(mconn, collection, linestringdata)
 }
 
-func PostPolygon(mongoconn *mongo.Database, collection string, polygondata GeoJsonPolygon) interface{} {
-	return atdb.InsertOneDoc(mongoconn, collection, polygondata)
+func PostPolygon(mconn *mongo.Database, collection string, polygondata GeoJsonPolygon) interface{} {
+	return atdb.InsertOneDoc(mconn, collection, polygondata)
 }
 
 // Read
 
-func GetAllBangunan(mongoenv *mongo.Database, collname string) []GeoJson {
-	lokasi := atdb.GetAllDoc[[]GeoJson](mongoenv, collname)
+func GetAllBangunan(mconn *mongo.Database, collname string) []GeoJson {
+	lokasi := atdb.GetAllDoc[[]GeoJson](mconn, collname)
 	return lokasi
 }
 
@@ -119,13 +119,13 @@ func GetAllBangunan(mongoenv *mongo.Database, collname string) []GeoJson {
 
 // Delete
 
-func DeleteGeojson(mongoenv *mongo.Database, collname string, userdata User) interface{} {
+func DeleteGeojson(mconn *mongo.Database, collname string, userdata User) interface{} {
 	filter := bson.M{"username": userdata.Username}
-	return atdb.DeleteOneDoc(mongoenv, collname, filter)
+	return atdb.DeleteOneDoc(mconn, collname, filter)
 }
 
-func GeoIntersects(mongoconn *mongo.Database, collname string, coordinates Point) (namalokasi string) {
-	lokasicollection := mongoconn.Collection(collname)
+func GeoIntersects(mconn *mongo.Database, collname string, coordinates Point) (namalokasi string) {
+	lokasicollection := mconn.Collection(collname)
 	filter := bson.M{
 		"geometry": bson.M{
 			"$geoIntersects": bson.M{
@@ -145,8 +145,8 @@ func GeoIntersects(mongoconn *mongo.Database, collname string, coordinates Point
 
 }
 
-func GeoWithin(mongoconn *mongo.Database, collname string, coordinates Polygon) (namalokasi string) {
-	lokasicollection := mongoconn.Collection(collname)
+func GeoWithin(mconn *mongo.Database, collname string, coordinates Polygon) (namalokasi string) {
+	lokasicollection := mconn.Collection(collname)
 	filter := bson.M{
 		"geometry": bson.M{
 			"$geoWithin": bson.M{
@@ -166,8 +166,8 @@ func GeoWithin(mongoconn *mongo.Database, collname string, coordinates Polygon) 
 
 }
 
-func Near(mongoconn *mongo.Database, collname string, coordinates Point) (namalokasi string) {
-	lokasicollection := mongoconn.Collection(collname)
+func Near(mconn *mongo.Database, collname string, coordinates Point) (namalokasi string) {
+	lokasicollection := mconn.Collection(collname)
 	filter := bson.M{
 		"geometry": bson.M{
 			"$near": bson.M{
@@ -190,12 +190,48 @@ func Near(mongoconn *mongo.Database, collname string, coordinates Point) (namalo
 
 // -------------------------------------------------------------------- Pemrograman --------------------------------------------------------------------
 
-func GetAllKegiatan(mongoenv *mongo.Database, collname string) []Kegiatan {
-	kegiatan := atdb.GetAllDoc[[]Kegiatan](mongoenv, collname)
+func GetAllKegiatan(mconn *mongo.Database, collname string) []Kegiatan {
+	kegiatan := atdb.GetAllDoc[[]Kegiatan](mconn, collname)
 	return kegiatan
 }
 
-func GetAllJadwal(mongoenv *mongo.Database, collname string) []Jadwal {
-	lokasi := atdb.GetAllDoc[[]Jadwal](mongoenv, collname)
+func GetAllJadwal(mconn *mongo.Database, collname string) []Jadwal {
+	lokasi := atdb.GetAllDoc[[]Jadwal](mconn, collname)
 	return lokasi
+}
+
+func InsertMahasiswa(mongoenv *mongo.Database, collname string, datamahasiswa Mahasiswa) interface{} {
+	return atdb.InsertOneDoc(mongoenv, collname, datamahasiswa)
+}
+
+func GetAllMahasiswa(mconn *mongo.Database, collname string) []Mahasiswa {
+	mahasiswa := atdb.GetAllDoc[[]Mahasiswa](mconn, collname)
+	return mahasiswa
+}
+
+func InsertDosen(mongoenv *mongo.Database, collname string, datadosen Dosen) interface{} {
+	return atdb.InsertOneDoc(mongoenv, collname, datadosen)
+}
+
+func GetAllDosen(mconn *mongo.Database, collname string) []Dosen {
+	dosen := atdb.GetAllDoc[[]Dosen](mconn, collname)
+	return dosen
+}
+
+func InsertRuangan(mongoenv *mongo.Database, collname string, dataruangan Ruangan) interface{} {
+	return atdb.InsertOneDoc(mongoenv, collname, dataruangan)
+}
+
+func GetAllRuangan(mconn *mongo.Database, collname string) []Ruangan {
+	ruangan := atdb.GetAllDoc[[]Ruangan](mconn, collname)
+	return ruangan
+}
+
+func InsertMatakuliah(mongoenv *mongo.Database, collname string, datamatakuliah Matakuliah) interface{} {
+	return atdb.InsertOneDoc(mongoenv, collname, datamatakuliah)
+}
+
+func GetAllMatakuliah(mconn *mongo.Database, collname string) []Matakuliah {
+	matakuliah := atdb.GetAllDoc[[]Matakuliah](mconn, collname)
+	return matakuliah
 }
