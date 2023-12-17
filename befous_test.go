@@ -10,7 +10,7 @@ var privatekey = ""
 var publickey = ""
 var encode = ""
 var dbname = "befous"
-var collname = "user"
+var collname = "geojson"
 
 func TestGeneratePaseto(t *testing.T) {
 	privateKey, publicKey := GenerateKey()
@@ -42,8 +42,15 @@ func TestDecode(t *testing.T) {
 }
 
 func TestGetAllUser(t *testing.T) {
-	mconn := SetConnection("mongoenv", dbname)
+	mconn := SetConnection("MONGOCONNSTRINGENV", dbname)
 	datagedung := GetAllUser(mconn, "user")
+	fmt.Println(datagedung)
+}
+func TestCobaUsernameExists(t *testing.T) {
+	mconn := SetConnection("MONGOCONNSTRINGENV", dbname)
+	var user User
+	user.Username = "befous44th"
+	datagedung := UsernameExists(mconn, "user", user)
 	fmt.Println(datagedung)
 }
 
@@ -76,13 +83,36 @@ func TestGeoWithin(t *testing.T) {
 }
 
 func TestNear(t *testing.T) {
-	mconn := SetConnection2dsphere("mongoenv", dbname)
+	mconn := SetConnection2dsphere("MONGOCONNSTRINGENV", dbname, collname)
 	coordinates := Point{
 		Coordinates: []float64{
 			103.6037314895799, -1.632582001101999,
 		},
 	}
 	datagedung := Near(mconn, collname, coordinates)
+	fmt.Println(datagedung)
+}
+
+func TestNearSphere(t *testing.T) {
+	mconn := SetConnection("MONGOCONNSTRINGENV", dbname)
+	coordinates := Point{
+		Coordinates: []float64{
+			103.6037314895799, -1.632582001101999,
+		},
+	}
+	datagedung := NearSphere(mconn, collname, coordinates)
+	fmt.Println(datagedung)
+}
+
+func TestBox(t *testing.T) {
+	mconn := SetConnection("MONGOCONNSTRINGENV", dbname)
+	coordinates := Polyline{
+		Coordinates: [][]float64{
+			{102.6037314895799, -1.732582001101999},
+			{104.6037314895799, -1.532582001101999},
+		},
+	}
+	datagedung := Box(mconn, collname, coordinates)
 	fmt.Println(datagedung)
 }
 
@@ -100,4 +130,11 @@ func TestGetAllBangunan(t *testing.T) {
 	mconn := SetConnection("mongoenv", dbname)
 	x := GetAllBangunan(mconn, collname)
 	fmt.Println(x)
+}
+
+func TestInsertUser(t *testing.T) {
+	mconn := SetConnection("mongoenv", dbname)
+	var user User
+	user.Name = "test"
+	InsertUser(mconn, "test", user)
 }

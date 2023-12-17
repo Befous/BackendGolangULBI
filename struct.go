@@ -15,6 +15,12 @@ type Payload struct {
 	Nbf      time.Time `json:"nbf"`
 }
 
+type DBInfo struct {
+	DBString       string
+	DBName         string
+	CollectionName string
+}
+
 type User struct {
 	Name     string `json:"name" bson:"name"`
 	Username string `json:"username" bson:"username"`

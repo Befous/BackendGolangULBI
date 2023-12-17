@@ -17,6 +17,7 @@ func Authorization(publickey, mongoenv, dbname, collname string, r *http.Request
 	var response CredentialUser
 	var auth User
 	response.Status = false
+	mconn := SetConnection(mongoenv, dbname)
 
 	header := r.Header.Get("token")
 	if header == "" {
@@ -35,7 +36,7 @@ func Authorization(publickey, mongoenv, dbname, collname string, r *http.Request
 		return ReturnStruct(response)
 	}
 
-	if !usernameExists(mongoenv, dbname, auth) {
+	if !UsernameExists(mconn, collname, auth) {
 		response.Message = "Akun tidak ditemukan"
 		return ReturnStruct(response)
 	}
@@ -75,7 +76,7 @@ func Registrasi(publickey, mongoenv, dbname, collname string, r *http.Request) s
 		return ReturnStruct(response)
 	}
 
-	if !usernameExists(mongoenv, dbname, User{Username: tokenusername}) {
+	if !UsernameExists(mconn, collname, User{Username: tokenusername}) {
 		response.Message = "Akun tidak ditemukan"
 		return ReturnStruct(response)
 	}
@@ -85,7 +86,7 @@ func Registrasi(publickey, mongoenv, dbname, collname string, r *http.Request) s
 		return ReturnStruct(response)
 	}
 
-	if usernameExists(mongoenv, dbname, datauser) {
+	if UsernameExists(mconn, collname, datauser) {
 		response.Message = "Username telah dipakai"
 		return ReturnStruct(response)
 	}
@@ -117,7 +118,7 @@ func Login(privatekey, mongoenv, dbname, collname string, r *http.Request) strin
 		return ReturnStruct(response)
 	}
 
-	if !usernameExists(mongoenv, dbname, datauser) {
+	if !UsernameExists(mconn, collname, datauser) {
 		response.Message = "Akun tidak ditemukan"
 		return ReturnStruct(response)
 	}
@@ -161,7 +162,7 @@ func AmbilSemuaUser(publickey, mongoenv, dbname, collname string, r *http.Reques
 		return ReturnStruct(response)
 	}
 
-	if !usernameExists(mongoenv, dbname, User{Username: tokenusername}) {
+	if !UsernameExists(mconn, collname, User{Username: tokenusername}) {
 		response.Message = "Akun tidak ditemukan"
 		return ReturnStruct(response)
 	}
@@ -204,7 +205,7 @@ func UpdateUser(publickey, mongoenv, dbname, collname string, r *http.Request) s
 		return ReturnStruct(response)
 	}
 
-	if !usernameExists(mongoenv, dbname, User{Username: tokenusername}) {
+	if !UsernameExists(mconn, collname, User{Username: tokenusername}) {
 		response.Message = "Akun tidak ditemukan"
 		return ReturnStruct(response)
 	}
@@ -219,7 +220,7 @@ func UpdateUser(publickey, mongoenv, dbname, collname string, r *http.Request) s
 		return ReturnStruct(response)
 	}
 
-	if !usernameExists(mongoenv, dbname, datauser) {
+	if !UsernameExists(mconn, collname, datauser) {
 		response.Message = "Akun yang ingin diedit tidak ditemukan"
 		return ReturnStruct(response)
 	}
@@ -269,7 +270,7 @@ func HapusUser(publickey, mongoenv, dbname, collname string, r *http.Request) st
 		return ReturnStruct(response)
 	}
 
-	if !usernameExists(mongoenv, dbname, User{Username: tokenusername}) {
+	if !UsernameExists(mconn, collname, User{Username: tokenusername}) {
 		response.Message = "Akun tidak ditemukan"
 		return ReturnStruct(response)
 	}
@@ -284,7 +285,7 @@ func HapusUser(publickey, mongoenv, dbname, collname string, r *http.Request) st
 		return ReturnStruct(response)
 	}
 
-	if !usernameExists(mongoenv, dbname, datauser) {
+	if !UsernameExists(mconn, collname, datauser) {
 		response.Message = "Akun yang ingin dihapus tidak ditemukan"
 		return ReturnStruct(response)
 	}
@@ -324,7 +325,7 @@ func MembuatGeojsonPoint(publickey, mongoenv, dbname, collname string, r *http.R
 		return ReturnStruct(response)
 	}
 
-	if !usernameExists(mongoenv, dbname, User{Username: tokenusername}) {
+	if !UsernameExists(mconn, collname, User{Username: tokenusername}) {
 		response.Message = "Akun tidak ditemukan"
 		return ReturnStruct(response)
 	}
@@ -369,7 +370,7 @@ func MembuatGeojsonPolyline(publickey, mongoenv, dbname, collname string, r *htt
 		return ReturnStruct(response)
 	}
 
-	if !usernameExists(mongoenv, dbname, User{Username: tokenusername}) {
+	if !UsernameExists(mconn, collname, User{Username: tokenusername}) {
 		response.Message = "Akun tidak ditemukan"
 		return ReturnStruct(response)
 	}
@@ -414,7 +415,7 @@ func MembuatGeojsonPolygon(publickey, mongoenv, dbname, collname string, r *http
 		return ReturnStruct(response)
 	}
 
-	if !usernameExists(mongoenv, dbname, User{Username: tokenusername}) {
+	if !UsernameExists(mconn, collname, User{Username: tokenusername}) {
 		response.Message = "Akun tidak ditemukan"
 		return ReturnStruct(response)
 	}
@@ -466,7 +467,7 @@ func PostGeoIntersects(publickey, mongoenv, dbname, collname string, r *http.Req
 		return ReturnStruct(response)
 	}
 
-	if !usernameExists(mongoenv, dbname, User{Username: tokenusername}) {
+	if !UsernameExists(mconn, collname, User{Username: tokenusername}) {
 		response.Message = "Akun tidak ditemukan"
 		return ReturnStruct(response)
 	}
@@ -510,7 +511,7 @@ func PostGeoWithin(publickey, mongoenv, dbname, collname string, r *http.Request
 		return ReturnStruct(response)
 	}
 
-	if !usernameExists(mongoenv, dbname, User{Username: tokenusername}) {
+	if !UsernameExists(mconn, collname, User{Username: tokenusername}) {
 		response.Message = "Akun tidak ditemukan"
 		return ReturnStruct(response)
 	}
@@ -532,7 +533,7 @@ func PostNear(publickey, mongoenv, dbname, collname string, r *http.Request) str
 	var coordinate Point
 	var response Pesan
 	response.Status = false
-	mconn := SetConnection2dsphere(mongoenv, dbname)
+	mconn := SetConnection2dsphere(mongoenv, dbname, collname)
 
 	err := json.NewDecoder(r.Body).Decode(&coordinate)
 
@@ -555,7 +556,7 @@ func PostNear(publickey, mongoenv, dbname, collname string, r *http.Request) str
 		return ReturnStruct(response)
 	}
 
-	if !usernameExists(mongoenv, dbname, User{Username: tokenusername}) {
+	if !UsernameExists(mconn, collname, User{Username: tokenusername}) {
 		response.Message = "Akun tidak ditemukan"
 		return ReturnStruct(response)
 	}
