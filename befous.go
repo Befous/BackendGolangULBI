@@ -179,7 +179,7 @@ func AmbilSemuaUser(publickey, mongoenv, dbname, collname string, r *http.Reques
 	return ReturnStruct(response)
 }
 
-func UpdateUser(publickey, mongoenv, dbname, collname string, r *http.Request) string {
+func EditUser(publickey, mongoenv, dbname, collname string, r *http.Request) string {
 	var response Pesan
 	response.Status = false
 	mconn := SetConnection(mongoenv, dbname)
@@ -237,7 +237,7 @@ func UpdateUser(publickey, mongoenv, dbname, collname string, r *http.Request) s
 		datauser.Password = user.Password
 	}
 
-	EditUser(mconn, collname, datauser)
+	UpdateUser(mconn, collname, datauser)
 
 	response.Status = true
 	response.Message = "Berhasil update " + datauser.Username + " dari database"

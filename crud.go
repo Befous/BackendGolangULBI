@@ -59,7 +59,7 @@ func UsernameExists(mconn *mongo.Database, collname string, userdata User) bool 
 
 // Update
 
-func EditUser(mconn *mongo.Database, collname string, datauser User) interface{} {
+func UpdateUser(mconn *mongo.Database, collname string, datauser User) interface{} {
 	filter := bson.M{"username": datauser.Username}
 	return ReplaceOneDoc(mconn, collname, filter, datauser)
 }
